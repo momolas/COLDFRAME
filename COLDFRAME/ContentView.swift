@@ -19,11 +19,11 @@ struct ContentView: View {
             VStack(spacing: 20) {
                 // Titre
                 VStack {
-                    Text("AL QIBLA")
+                    Text("COLDFRAME")
                         .font(.system(size: 28, weight: .light, design: .serif))
                         .tracking(5)
                         .foregroundStyle(Color.gold)
-                    Text(qiblaManager.isAligned ? "ALIGNÉ" : "RECHERCHE...")
+                    Text(qiblaManager.isAligned ? "Aligné" : "Recherche...")
                         .font(.caption)
                         .foregroundStyle(qiblaManager.isAligned ? Color.green : Color.white.opacity(0.5))
                 }
