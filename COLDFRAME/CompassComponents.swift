@@ -41,7 +41,7 @@ struct QiblaPointer: View {
 	var isAligned: Bool
 	var body: some View {
 		VStack(spacing: 0) {
-			Image(systemName: "mosque.fill")
+			Image(systemName: "house.circle.fill")
 				.font(.system(size: 30))
 				.foregroundColor(isAligned ? .gold : .white)
 				.shadow(color: isAligned ? .gold : .clear, radius: 15)

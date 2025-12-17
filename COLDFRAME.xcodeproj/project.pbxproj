@@ -10,9 +10,22 @@
 		CDFBCA802EF32E1D006CCBB8 /* COLDFRAME.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = COLDFRAME.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CDFBCA9B2EF3461E006CCBB8 /* Exceptions for "COLDFRAME" folder in "COLDFRAME" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = CDFBCA7F2EF32E1D006CCBB8 /* COLDFRAME */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CDFBCA822EF32E1D006CCBB8 /* COLDFRAME */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CDFBCA9B2EF3461E006CCBB8 /* Exceptions for "COLDFRAME" folder in "COLDFRAME" target */,
+			);
 			path = COLDFRAME;
 			sourceTree = "<group>";
 		};
@@ -256,7 +269,9 @@
 				DEVELOPMENT_TEAM = X8SJ59XXC8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = COLDFRAME/Info.plist;
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Nous avons besoin de votre position pour calculer la Qibla et les horaires de prière.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -293,7 +308,9 @@
 				DEVELOPMENT_TEAM = X8SJ59XXC8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = COLDFRAME/Info.plist;
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Nous avons besoin de votre position pour calculer la Qibla et les horaires de prière.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

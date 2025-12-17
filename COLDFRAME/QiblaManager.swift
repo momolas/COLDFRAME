@@ -10,6 +10,7 @@ import Foundation
 import CoreLocation
 import Combine
 import UIKit
+import SwiftUI
 
 class QiblaManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 	private let locationManager = CLLocationManager()
@@ -35,7 +36,15 @@ class QiblaManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 	
 	// MARK: - CoreLocation Delegate
 	func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
-		self.heading = newHeading.magneticHeading
+		// Si le "Vrai Nord" est disponible (valeur >= 0), on l'utilise.
+		// Sinon, on se rabat sur le magnétique (moins précis pour la Qibla).
+		let capUtilise = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
+		
+		// On lisse un peu le mouvement pour éviter que l'aiguille ne tremble
+		withAnimation(Animation.easeInOut(duration: 0.2)) {
+			self.heading = capUtilise
+		}
+		
 		checkAlignment()
 	}
 	
@@ -54,14 +63,20 @@ class QiblaManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 	private func calculateQiblaAngle(from location: CLLocation) -> Double {
 		let lat1 = location.coordinate.latitude.deg2rad
 		let lon1 = location.coordinate.longitude.deg2rad
-		let lat2 = 21.4225.deg2rad
-		let lon2 = 39.8262.deg2rad
+		
+		let lat2 = 21.4225.deg2rad // Latitude Mecque
+		let lon2 = 39.8262.deg2rad // Longitude Mecque
+		
 		let dLon = lon2 - lon1
 		
 		let y = sin(dLon)
 		let x = cos(lat1) * tan(lat2) - sin(lat1) * cos(dLon)
-		var angle = atan2(y, x).rad2deg
-		return (angle + 360).truncatingRemainder(dividingBy: 360)
+		
+		let angleRad = atan2(y, x)
+		let angleDeg = angleRad.rad2deg
+		
+		// Normalisation pour avoir toujours un angle positif (0 à 360)
+		return (angleDeg + 360).truncatingRemainder(dividingBy: 360)
 	}
 	
 	private func checkAlignment() {

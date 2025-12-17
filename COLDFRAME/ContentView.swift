@@ -57,7 +57,7 @@ struct ContentView: View {
                             Image(systemName: "person.circle.fill").foregroundColor(.blue)
                         }
                         Annotation("Kaaba", coordinate: qiblaManager.meccaCoordinate) {
-                            Image(systemName: "mosque.fill").foregroundColor(.gold)
+                            Image(systemName: "house.circle.fill").foregroundColor(.gold)
                         }
                         MapPolyline(coordinates: [user, qiblaManager.meccaCoordinate])
                             .stroke(Color.gold, lineWidth: 2)
