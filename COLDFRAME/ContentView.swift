@@ -10,7 +10,7 @@ import SwiftUI
 import MapKit
 
 struct ContentView: View {
-    @StateObject private var qiblaManager = QiblaManager()
+    @State private var qiblaManager = QiblaManager()
     
     var body: some View {
         ZStack {
@@ -22,10 +22,10 @@ struct ContentView: View {
                     Text("AL QIBLA")
                         .font(.system(size: 28, weight: .light, design: .serif))
                         .tracking(5)
-                        .foregroundColor(.gold)
+                        .foregroundStyle(Color.gold)
                     Text(qiblaManager.isAligned ? "ALIGNÉ" : "RECHERCHE...")
                         .font(.caption)
-                        .foregroundColor(qiblaManager.isAligned ? .green : .white.opacity(0.5))
+                        .foregroundStyle(qiblaManager.isAligned ? Color.green : Color.white.opacity(0.5))
                 }
                 .padding(.top)
                 
@@ -45,7 +45,7 @@ struct ContentView: View {
                 
                 // Horaires
                 VStack(alignment: .leading) {
-                    Text("Horaires de Prière").font(.headline).foregroundColor(.gold).padding(.leading)
+                    Text("Horaires de Prière").font(.headline).foregroundStyle(Color.gold).padding(.leading)
                     PrayerTimesList(prayers: qiblaManager.prayerTimes)
                 }
                 .frame(height: 140)
@@ -54,10 +54,10 @@ struct ContentView: View {
                 Map {
                     if let user = qiblaManager.userLocation {
                         Annotation("Moi", coordinate: user) {
-                            Image(systemName: "person.circle.fill").foregroundColor(.blue)
+                            Image(systemName: "person.circle.fill").foregroundStyle(Color.blue)
                         }
                         Annotation("Kaaba", coordinate: qiblaManager.meccaCoordinate) {
-                            Image(systemName: "house.circle.fill").foregroundColor(.gold)
+                            Image(systemName: "house.circle.fill").foregroundStyle(Color.gold)
                         }
                         MapPolyline(coordinates: [user, qiblaManager.meccaCoordinate])
                             .stroke(Color.gold, lineWidth: 2)

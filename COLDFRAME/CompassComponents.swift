@@ -29,7 +29,7 @@ struct CompassDial: View {
 			// Points cardinaux
 			ForEach(["N", "E", "S", "O"], id: \.self) { dir in
 				Text(dir)
-					.font(.caption).bold().foregroundColor(.white)
+					.font(.caption).bold().foregroundStyle(Color.white)
 					.offset(y: -110)
 					.rotationEffect(.degrees(dir == "N" ? 0 : dir == "E" ? 90 : dir == "S" ? 180 : 270))
 			}
@@ -43,12 +43,12 @@ struct QiblaPointer: View {
 		VStack(spacing: 0) {
 			Image(systemName: "house.circle.fill")
 				.font(.system(size: 30))
-				.foregroundColor(isAligned ? .gold : .white)
+				.foregroundStyle(isAligned ? Color.gold : Color.white)
 				.shadow(color: isAligned ? .gold : .clear, radius: 15)
 			Rectangle()
 				.fill(LinearGradient(colors: [isAligned ? .gold : .white, .clear], startPoint: .top, endPoint: .bottom))
 				.frame(width: 4, height: 110)
-				.cornerRadius(2)
+				.clipShape(RoundedRectangle(cornerRadius: 2))
 		}
 	}
 }
@@ -56,21 +56,22 @@ struct QiblaPointer: View {
 struct PrayerTimesList: View {
 	let prayers: [PrayerTime]
 	var body: some View {
-		ScrollView(.horizontal, showsIndicators: false) {
+		ScrollView(.horizontal) {
 			HStack(spacing: 15) {
 				ForEach(prayers) { prayer in
 					VStack(spacing: 8) {
-						Image(systemName: prayer.icon).font(.title2).foregroundColor(.gold)
-						Text(prayer.name).font(.caption).bold().foregroundColor(.white)
-						Text(prayer.time).font(.caption2).foregroundColor(.gray)
+						Image(systemName: prayer.icon).font(.title2).foregroundStyle(Color.gold)
+						Text(prayer.name).font(.caption).bold().foregroundStyle(Color.white)
+						Text(prayer.time).font(.caption2).foregroundStyle(Color.gray)
 					}
 					.frame(width: 80, height: 100)
 					.background(Color(white: 0.15))
-					.cornerRadius(15)
+					.clipShape(RoundedRectangle(cornerRadius: 15))
 					.overlay(RoundedRectangle(cornerRadius: 15).stroke(Color.gold.opacity(0.3), lineWidth: 1))
 				}
 			}
 			.padding(.horizontal)
 		}
+        .scrollIndicators(.hidden)
 	}
 }

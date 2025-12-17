@@ -15,10 +15,17 @@ struct IslamicAstronomy {
         let calendar = Calendar(identifier: .gregorian)
         let components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
         
-        var Y = Double(components.year!)
-        var M = Double(components.month!)
-        let D = Double(components.day!)
-        let H = Double(components.hour!) + Double(components.minute!)/60.0 + Double(components.second!)/3600.0
+        let yearComp = Double(components.year ?? 2000)
+        let monthComp = Double(components.month ?? 1)
+        let dayComp = Double(components.day ?? 1)
+        let hourComp = Double(components.hour ?? 12)
+        let minuteComp = Double(components.minute ?? 0)
+        let secondComp = Double(components.second ?? 0)
+
+        var Y = yearComp
+        var M = monthComp
+        let D = dayComp
+        let H = hourComp + minuteComp/60.0 + secondComp/3600.0
         
         if M <= 2 { Y -= 1; M += 12 }
         

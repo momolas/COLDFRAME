@@ -8,13 +8,20 @@
 
 import Foundation
 import UserNotifications
+import os
 
 class NotificationManager {
 	static let shared = NotificationManager()
+
+    private let logger = Logger(subsystem: "com.coldframe.app", category: "NotificationManager")
 	
 	func requestAuthorization() {
-		UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
-			if granted { print("Notifications autorisées") }
+		UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if granted {
+                self.logger.info("Notifications autorisées")
+            } else if let error = error {
+                self.logger.error("Erreur d'autorisation de notification: \(error.localizedDescription)")
+            }
 		}
 	}
 	

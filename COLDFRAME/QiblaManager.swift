@@ -11,16 +11,19 @@ import CoreLocation
 import Combine
 import UIKit
 import SwiftUI
+import Observation
 
-class QiblaManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+@MainActor
+@Observable
+class QiblaManager: NSObject, CLLocationManagerDelegate {
 	private let locationManager = CLLocationManager()
 	private let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
 	
-	@Published var heading: Double = 0.0
-	@Published var qiblaAngle: Double = 0.0
-	@Published var isAligned: Bool = false
-	@Published var userLocation: CLLocationCoordinate2D?
-	@Published var prayerTimes: [PrayerTime] = []
+	var heading: Double = 0.0
+	var qiblaAngle: Double = 0.0
+	var isAligned: Bool = false
+	var userLocation: CLLocationCoordinate2D?
+	var prayerTimes: [PrayerTime] = []
 	
 	let meccaCoordinate = CLLocationCoordinate2D(latitude: 21.4225, longitude: 39.8262)
 	
@@ -35,28 +38,32 @@ class QiblaManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 	}
 	
 	// MARK: - CoreLocation Delegate
-	func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
-		// Si le "Vrai Nord" est disponible (valeur >= 0), on l'utilise.
-		// Sinon, on se rabat sur le magnétique (moins précis pour la Qibla).
-		let capUtilise = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
-		
-		// On lisse un peu le mouvement pour éviter que l'aiguille ne tremble
-		withAnimation(Animation.easeInOut(duration: 0.2)) {
-			self.heading = capUtilise
-		}
-		
-		checkAlignment()
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
+		Task { @MainActor in
+            // Si le "Vrai Nord" est disponible (valeur >= 0), on l'utilise.
+            // Sinon, on se rabat sur le magnétique (moins précis pour la Qibla).
+            let capUtilise = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
+
+            // On lisse un peu le mouvement pour éviter que l'aiguille ne tremble
+            withAnimation(Animation.easeInOut(duration: 0.2)) {
+                self.heading = capUtilise
+            }
+
+            checkAlignment()
+        }
 	}
 	
-	func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-		guard let location = locations.last else { return }
-		self.userLocation = location.coordinate
-		self.qiblaAngle = calculateQiblaAngle(from: location)
-		
-		// Recalculer les horaires si la position change significativement ou si vide
-		if prayerTimes.isEmpty {
-			calculatePrayersLocally(for: location)
-		}
+	nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        Task { @MainActor in
+            guard let location = locations.last else { return }
+            self.userLocation = location.coordinate
+            self.qiblaAngle = calculateQiblaAngle(from: location)
+
+            // Recalculer les horaires si la position change significativement ou si vide
+            if prayerTimes.isEmpty {
+                calculatePrayersLocally(for: location)
+            }
+        }
 	}
 	
 	// MARK: - Qibla Calcul
@@ -143,13 +150,12 @@ class QiblaManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 			return PrayerTime(name: name, time: formatDecimalTime(decimal), icon: icon)
 		}
 		
-		DispatchQueue.main.async {
-			self.prayerTimes = formattedTimes
-			NotificationManager.shared.cancelAllNotifications()
-			for prayer in formattedTimes {
-				NotificationManager.shared.scheduleNotification(for: prayer)
-			}
-		}
+        // Already on MainActor
+        self.prayerTimes = formattedTimes
+        NotificationManager.shared.cancelAllNotifications()
+        for prayer in formattedTimes {
+            NotificationManager.shared.scheduleNotification(for: prayer)
+        }
 	}
 	
 	private func formatDecimalTime(_ time: Double) -> String {
