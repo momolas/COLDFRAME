@@ -12,6 +12,7 @@ struct COLDFRAMEApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+				.preferredColorScheme(.dark) // Force le mode sombre
         }
     }
 }
