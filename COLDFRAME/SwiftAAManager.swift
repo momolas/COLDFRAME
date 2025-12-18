@@ -24,7 +24,7 @@ class SwiftAAManager {
 		// Déclinaison : Angle du soleil par rapport à l'équateur céleste
 		let declination = sun.equatorialCoordinates.declination.value // en degrés
 		// Equation du temps : La différence entre le "temps solaire vrai" et le temps de la montre
-		let equationOfTime = sun.equationOfTime.value // en minutes
+		let equationOfTime = sun.equationOfTime().value // en minutes
 		
 		// 3. Variables locales
 		let lat = location.coordinate.latitude
