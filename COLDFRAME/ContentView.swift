@@ -20,7 +20,9 @@ struct ContentView: View {
                 // Titre
                 VStack {
                     Text("COLDFRAME")
-                        .font(.system(size: 28, weight: .light, design: .serif))
+                        .font(.largeTitle)
+                        .fontDesign(.serif)
+                        .fontWeight(.light)
                         .tracking(5)
                         .foregroundStyle(Color.gold)
                     Text(qiblaManager.isAligned ? "Aligné" : "Recherche...")
@@ -64,10 +66,13 @@ struct ContentView: View {
                     }
                 }
                 .frame(height: 120)
-                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .clipShape(.rect(cornerRadius: 20))
                 .padding([.horizontal, .bottom])
                 .saturation(0)
             }
+        }
+        .sensoryFeedback(.impact(weight: .medium), trigger: qiblaManager.isAligned) { _, newValue in
+            newValue
         }
     }
 }
