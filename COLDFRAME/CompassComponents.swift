@@ -42,13 +42,13 @@ struct QiblaPointer: View {
 	var body: some View {
 		VStack(spacing: 0) {
 			Image(systemName: "house.circle.fill")
-				.font(.system(size: 30))
+				.font(.largeTitle)
 				.foregroundStyle(isAligned ? Color.gold : Color.white)
 				.shadow(color: isAligned ? .gold : .clear, radius: 15)
 			Rectangle()
 				.fill(LinearGradient(colors: [isAligned ? .gold : .white, .clear], startPoint: .top, endPoint: .bottom))
 				.frame(width: 4, height: 110)
-				.clipShape(RoundedRectangle(cornerRadius: 2))
+				.clipShape(.rect(cornerRadius: 2))
 		}
 	}
 }
@@ -66,7 +66,7 @@ struct PrayerTimesList: View {
 					}
 					.frame(width: 80, height: 100)
 					.background(Color(white: 0.15))
-					.clipShape(RoundedRectangle(cornerRadius: 15))
+					.clipShape(.rect(cornerRadius: 15))
 					.overlay(RoundedRectangle(cornerRadius: 15).stroke(Color.gold.opacity(0.3), lineWidth: 1))
 				}
 			}

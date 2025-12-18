@@ -4,5 +4,7 @@
 <dict>
 	<key>MKDirectionsApplicationSupportedModes</key>
 	<array/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Cette application utilise votre localisation pour calculer la Qibla et les horaires de prière.</string>
 </dict>
 </plist>
