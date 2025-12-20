@@ -7,7 +7,6 @@
 
 
 import SwiftUI
-import MapKit
 
 struct ContentView: View {
     @State private var qiblaManager = QiblaManager()
@@ -20,7 +19,9 @@ struct ContentView: View {
                 // Titre
                 VStack {
                     Text("COLDFRAME")
-                        .font(.system(size: 28, weight: .light, design: .serif))
+                        .font(.largeTitle)
+                        .fontDesign(.serif)
+                        .fontWeight(.light)
                         .tracking(5)
                         .foregroundStyle(Color.gold)
                     Text(qiblaManager.isAligned ? "Aligné" : "Recherche...")
@@ -50,24 +51,11 @@ struct ContentView: View {
                 }
                 .frame(height: 140)
                 
-                // Carte
-                Map {
-                    if let user = qiblaManager.userLocation {
-                        Annotation("Moi", coordinate: user) {
-                            Image(systemName: "person.circle.fill").foregroundStyle(Color.blue)
-                        }
-                        Annotation("Kaaba", coordinate: qiblaManager.meccaCoordinate) {
-                            Image(systemName: "house.circle.fill").foregroundStyle(Color.gold)
-                        }
-                        MapPolyline(coordinates: [user, qiblaManager.meccaCoordinate])
-                            .stroke(Color.gold, lineWidth: 2)
-                    }
-                }
-                .frame(height: 120)
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .padding([.horizontal, .bottom])
-                .saturation(0)
             }
+            .padding(.bottom)
+        }
+        .sensoryFeedback(.impact(weight: .medium), trigger: qiblaManager.isAligned) { _, newValue in
+            newValue
         }
     }
 }
