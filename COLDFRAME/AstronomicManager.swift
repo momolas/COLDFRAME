@@ -1,5 +1,5 @@
 //
-//  SwiftAAManager.swift
+//  AstronomicManager.swift
 //  COLDFRAME
 //
 //  Created by Mo on 17/12/2025.
@@ -10,7 +10,7 @@ import Foundation
 import CoreLocation
 import SwiftAA // Le package doit être importé
 
-class SwiftAAManager {
+class AstronomicManager {
 	
 	// Fonction principale appelée par QiblaManager
 	static func getSolarData(for location: CLLocation, date: Date = Date()) -> [PrayerTime] {

@@ -20,8 +20,6 @@ struct ContentView: View {
                 VStack {
                     Text("COLDFRAME")
                         .font(.largeTitle)
-                        .fontDesign(.serif)
-                        .fontWeight(.light)
                         .tracking(5)
                         .foregroundStyle(Color.gold)
                     Text(qiblaManager.isAligned ? "Aligné" : "Recherche...")
@@ -46,16 +44,16 @@ struct ContentView: View {
                 
                 // Horaires
                 VStack(alignment: .leading) {
-                    Text("Horaires de Prière").font(.headline).foregroundStyle(Color.gold).padding(.leading)
+                    Text("Horaires de Prière")
+						.font(.headline)
+						.foregroundStyle(Color.gold)
+						.padding(.leading)
                     PrayerTimesList(prayers: qiblaManager.prayerTimes)
                 }
                 .frame(height: 140)
                 
             }
             .padding(.bottom)
-        }
-        .sensoryFeedback(.impact(weight: .medium), trigger: qiblaManager.isAligned) { _, newValue in
-            newValue
         }
         .sensoryFeedback(.impact(weight: .medium), trigger: qiblaManager.isAligned) { _, newValue in
             newValue

@@ -51,7 +51,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
             // 1. Calcul Qibla (Formule Mathématique Orthodromique)
             self.qiblaAngle = self.calculateBearingToMecca(from: location)
 
-            // 2. Calcul Horaires via SwiftAA (appel au SwiftAAManager)
+            // 2. Calcul Horaires via SwiftAA (appel au AstronomicManager)
             // On évite de recalculer trop souvent
             if self.prayerTimes.isEmpty {
                 self.calculatePrayersLocally(for: location)
@@ -59,7 +59,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         }
     }
 
-    // MARK: - Calcul Qibla (Correctif)
+    // MARK: - Calcul Qibla
     private func calculateBearingToMecca(from location: CLLocation) -> Double {
         let lat1 = location.coordinate.latitude.deg2rad
         let lon1 = location.coordinate.longitude.deg2rad
@@ -81,7 +81,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     // MARK: - Calcul Horaires (SwiftAA)
     func calculatePrayersLocally(for location: CLLocation) {
         // On délègue le travail astronomique complexe à notre Manager dédié
-        let calculatedTimes = SwiftAAManager.getSolarData(for: location)
+        let calculatedTimes = AstronomicManager.getSolarData(for: location)
 
         self.prayerTimes = calculatedTimes
 
