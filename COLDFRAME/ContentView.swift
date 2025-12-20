@@ -57,6 +57,9 @@ struct ContentView: View {
         .sensoryFeedback(.impact(weight: .medium), trigger: qiblaManager.isAligned) { _, newValue in
             newValue
         }
+        .sensoryFeedback(.impact(weight: .medium), trigger: qiblaManager.isAligned) { _, newValue in
+            newValue
+        }
     }
 }
 
