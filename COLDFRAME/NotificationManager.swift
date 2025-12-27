@@ -29,8 +29,8 @@ class NotificationManager {
 		let content = UNMutableNotificationContent()
 		content.title = "Heure de la prière"
 		content.body = "C'est l'heure de \(prayer.name)."
-		// Assurez-vous d'avoir ajouté un fichier 'adhan.mp3' au projet
-		content.sound = UNNotificationSound(named: UNNotificationSoundName("adhan.mp3"))
+		// Utilisation du son par défaut car 'adhan.mp3' est manquant
+		content.sound = .default
 		
 		let timeParts = prayer.time.split(separator: ":").compactMap { Int($0) }
 		guard timeParts.count == 2 else { return }
@@ -39,7 +39,7 @@ class NotificationManager {
 		dateComponents.hour = timeParts[0]
 		dateComponents.minute = timeParts[1]
 		
-		let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+		let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
 		let request = UNNotificationRequest(identifier: prayer.name, content: content, trigger: trigger)
 		
 		UNUserNotificationCenter.current().add(request)
