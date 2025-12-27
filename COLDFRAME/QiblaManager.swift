@@ -20,6 +20,9 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     var userLocation: CLLocationCoordinate2D?
     var prayerTimes: [PrayerTime] = []
 
+    private var lastCalculationDate: Date?
+    private var lastCalculationLocation: CLLocation?
+
     // Coordonnées de la Kaaba (La Mecque)
     let meccaCoordinate = CLLocationCoordinate2D(latitude: 21.4225, longitude: 39.8262)
 
@@ -53,7 +56,25 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
 
             // 2. Calcul Horaires via SwiftAA (appel au AstronomicManager)
             // On évite de recalculer trop souvent
-            if self.prayerTimes.isEmpty {
+            let shouldUpdate: Bool = {
+                if self.prayerTimes.isEmpty { return true }
+
+                // Vérifier changement de jour
+                if let lastDate = self.lastCalculationDate,
+                   !Calendar.current.isDate(lastDate, inSameDayAs: Date()) {
+                    return true
+                }
+
+                // Vérifier changement de position significatif (> 5km)
+                if let lastLoc = self.lastCalculationLocation,
+                   lastLoc.distance(from: location) > 5000 {
+                    return true
+                }
+
+                return false
+            }()
+
+            if shouldUpdate {
                 self.calculatePrayersLocally(for: location)
             }
         }
@@ -84,6 +105,8 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         let calculatedTimes = AstronomicManager.getSolarData(for: location)
 
         self.prayerTimes = calculatedTimes
+        self.lastCalculationDate = Date()
+        self.lastCalculationLocation = location
 
         // Notifications
         NotificationManager.shared.cancelAllNotifications()
