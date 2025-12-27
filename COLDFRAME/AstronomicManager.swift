@@ -60,7 +60,8 @@ class AstronomicManager {
 		formatter.dateFormat = "HH:mm"
 		
 		// Helper pour convertir l'heure décimale (18.5) en String ("18:30")
-		func format(_ decimalTime: Double) -> String {
+        // Retourne le tuple (String, Date)
+		func format(_ decimalTime: Double) -> (String, Date) {
 			var t = decimalTime
 			// Normalisation 0-24h
 			if t < 0 { t += 24 }
@@ -68,18 +69,27 @@ class AstronomicManager {
 			
 			let hours = Int(t)
 			let minutes = Int((t - Double(hours)) * 60)
-			return String(format: "%02d:%02d", hours, minutes)
+
+            var components = Calendar.current.dateComponents([.year, .month, .day], from: date)
+            components.hour = hours
+            components.minute = minutes
+
+            let prayerDate = Calendar.current.date(from: components) ?? date
+
+			return (String(format: "%02d:%02d", hours, minutes), prayerDate)
 		}
 		
 		// --- FAJR ---
 		// Angle standard : -18° (Ligue Islamique Mondiale)
 		if let offset = getHourOffset(altitude: -18.0) {
-			results.append(PrayerTime(name: "Fajr", time: format(dhuhrDecimal - offset), icon: "sun.haze.fill"))
+            let f = format(dhuhrDecimal - offset)
+			results.append(PrayerTime(name: "Fajr", time: f.0, date: f.1, icon: "sun.haze.fill"))
 		}
 		
 		// --- DHUHR ---
 		// On ajoute 2 minutes de précaution par rapport au zénith exact
-		results.append(PrayerTime(name: "Dhuhr", time: format(dhuhrDecimal + (2.0/60.0)), icon: "sun.max.fill"))
+        let dhuhrF = format(dhuhrDecimal + (2.0/60.0))
+		results.append(PrayerTime(name: "Dhuhr", time: dhuhrF.0, date: dhuhrF.1, icon: "sun.max.fill"))
 		
 		// --- ASR ---
 		// Altitude Asr = arccot(1 + tan(|lat - decl|))
@@ -90,20 +100,23 @@ class AstronomicManager {
 		let asrAltitude = asrAltitudeRad.rad2deg
 		
 		if let offset = getHourOffset(altitude: asrAltitude) {
-			results.append(PrayerTime(name: "Asr", time: format(dhuhrDecimal + offset), icon: "sun.min.fill"))
+            let f = format(dhuhrDecimal + offset)
+			results.append(PrayerTime(name: "Asr", time: f.0, date: f.1, icon: "sun.min.fill"))
 		}
 		
 		// --- MAGHRIB ---
 		// Coucher du soleil théorique à 0°, mais -0.833° avec la réfraction atmosphérique
 		if let offset = getHourOffset(altitude: -0.833) {
 			// On ajoute souvent 3 min de précaution après le coucher théorique
-			results.append(PrayerTime(name: "Maghrib", time: format(dhuhrDecimal + offset + (3.0/60.0)), icon: "sunset.fill"))
+            let f = format(dhuhrDecimal + offset + (3.0/60.0))
+			results.append(PrayerTime(name: "Maghrib", time: f.0, date: f.1, icon: "sunset.fill"))
 		}
 		
 		// --- ISHA ---
 		// Angle standard : -17° ou -18°
 		if let offset = getHourOffset(altitude: -17.0) {
-			results.append(PrayerTime(name: "Isha", time: format(dhuhrDecimal + offset), icon: "moon.stars.fill"))
+            let f = format(dhuhrDecimal + offset)
+			results.append(PrayerTime(name: "Isha", time: f.0, date: f.1, icon: "moon.stars.fill"))
 		}
 		
 		return results
