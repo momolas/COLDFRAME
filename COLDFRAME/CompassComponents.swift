@@ -64,7 +64,8 @@ struct PrayerTimesList: View {
 	var body: some View {
 		ScrollView(.horizontal) {
 			HStack(spacing: 15) {
-				ForEach(prayers, id: \.self) { prayer in
+				ForEach(prayers.indices, id: \.self) { index in
+                    let prayer = prayers[index]
                     let isNext = prayer.id == nextPrayer?.id
 
 					VStack(spacing: 8) {
