@@ -58,30 +58,36 @@ struct QiblaPointer: View {
 
 struct PrayerTimesList: View {
 	let prayers: [PrayerTime]
+    var nextPrayer: PrayerTime? = nil
+
 	var body: some View {
 		ScrollView(.horizontal) {
 			HStack(spacing: 15) {
 				ForEach(prayers) { prayer in
+                    let isNext = prayer.id == nextPrayer?.id
+
 					VStack(spacing: 8) {
 						Image(systemName: prayer.icon)
                             .font(.title2)
-                            .foregroundStyle(Color.gold)
+                            .foregroundStyle(isNext ? .white : Color.gold)
                             .symbolEffect(.pulse.byLayer, isActive: true)
 						Text(prayer.name)
                             .font(.caption).bold()
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(isNext ? .white : .primary)
 						Text(prayer.time)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(isNext ? .white.opacity(0.8) : .secondary)
 					}
 					.frame(width: 80, height: 100)
-					.background(.regularMaterial)
+					.background(isNext ? Color.gold : .regularMaterial)
 					.clipShape(.rect(cornerRadius: 20))
 					.overlay(
                         RoundedRectangle(cornerRadius: 20)
-                            .strokeBorder(LinearGradient(colors: [.gold.opacity(0.5), .clear], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                            .strokeBorder(LinearGradient(colors: [isNext ? .white : .gold.opacity(0.5), .clear], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
                     )
-                    .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 5)
+                    .shadow(color: isNext ? .gold.opacity(0.5) : .black.opacity(0.2), radius: isNext ? 10 : 5, x: 0, y: 5)
+                    .scaleEffect(isNext ? 1.05 : 1.0)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isNext)
 				}
 			}
 			.padding(.horizontal)

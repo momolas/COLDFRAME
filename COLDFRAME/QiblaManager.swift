@@ -19,6 +19,11 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     var isAligned: Bool = false
     var userLocation: CLLocationCoordinate2D?
     var prayerTimes: [PrayerTime] = []
+    var nextPrayer: PrayerTime? = nil
+    var authorizationStatus: CLAuthorizationStatus = .notDetermined
+
+    private var lastCalculationDate: Date?
+    private var lastCalculationLocation: CLLocation?
 
     private var lastCalculationDate: Date?
     private var lastCalculationLocation: CLLocation?
@@ -37,6 +42,12 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     }
 
     // MARK: - CoreLocation Delegate
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        Task { @MainActor in
+            self.authorizationStatus = manager.authorizationStatus
+        }
+    }
+
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
         Task { @MainActor in
             // Utiliser le Vrai Nord (True Heading) si disponible, sinon le Magnétique
@@ -105,6 +116,8 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         let calculatedTimes = AstronomicManager.getSolarData(for: location)
 
         self.prayerTimes = calculatedTimes
+        self.updateNextPrayer()
+
         self.lastCalculationDate = Date()
         self.lastCalculationLocation = location
 
@@ -112,6 +125,17 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         NotificationManager.shared.cancelAllNotifications()
         for prayer in calculatedTimes {
             NotificationManager.shared.scheduleNotification(for: prayer)
+        }
+    }
+
+    private func updateNextPrayer() {
+        let now = Date()
+        // Trouver la première prière dont la date est future
+        if let next = prayerTimes.first(where: { $0.date > now }) {
+            self.nextPrayer = next
+        } else {
+            // Si toutes sont passées, la prochaine est Fajr demain (non géré ici pour l'instant, ou on pourrait garder nil)
+            self.nextPrayer = nil
         }
     }
 

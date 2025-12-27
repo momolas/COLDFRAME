@@ -17,9 +17,38 @@ struct ContentView: View {
             RadialGradient(colors: [Color(red: 0.1, green: 0.1, blue: 0.2), .black], center: .center, startRadius: 20, endRadius: 500)
                 .ignoresSafeArea()
             
-            VStack(spacing: 20) {
-                // Titre
-                VStack(spacing: 8) {
+            if qiblaManager.authorizationStatus == .denied || qiblaManager.authorizationStatus == .restricted {
+                VStack(spacing: 20) {
+                    Image(systemName: "location.slash.circle")
+                        .font(.system(size: 60))
+                        .foregroundStyle(Color.gold)
+                    Text("Localisation requise")
+                        .font(.title2).bold()
+                        .fontDesign(.serif)
+                        .foregroundStyle(.white)
+                    Text("Veuillez autoriser l'accès à la localisation dans les paramètres pour utiliser la boussole Qibla.")
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.gray)
+                        .padding(.horizontal)
+
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        Text("Ouvrir les Réglages")
+                            .bold()
+                            .padding()
+                            .background(Color.gold)
+                            .foregroundStyle(.black)
+                            .clipShape(.capsule)
+                    }
+                }
+            } else {
+                VStack(spacing: 20) {
+                    // Titre
+                    VStack(spacing: 8) {
                     Text("COLDFRAME")
                         .font(.largeTitle)
                         .fontDesign(.serif)
@@ -58,22 +87,23 @@ struct ContentView: View {
                 
                 Spacer()
                 
-                // Horaires
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Horaires de Prière")
-						.font(.headline)
-                        .fontDesign(.serif)
-						.foregroundStyle(Color.gold)
-						.padding(.leading, 20)
-                    PrayerTimesList(prayers: qiblaManager.prayerTimes)
+                    // Horaires
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Horaires de Prière")
+                            .font(.headline)
+                            .fontDesign(.serif)
+                            .foregroundStyle(Color.gold)
+                            .padding(.leading, 20)
+                        PrayerTimesList(prayers: qiblaManager.prayerTimes, nextPrayer: qiblaManager.nextPrayer)
+                    }
+                    .frame(height: 160)
+                    .background(
+                        LinearGradient(colors: [.clear, .black.opacity(0.5)], startPoint: .top, endPoint: .bottom)
+                    )
+
                 }
-                .frame(height: 160)
-                .background(
-                    LinearGradient(colors: [.clear, .black.opacity(0.5)], startPoint: .top, endPoint: .bottom)
-                )
-                
+                .padding(.bottom)
             }
-            .padding(.bottom)
         }
         .sensoryFeedback(.impact(weight: .medium), trigger: qiblaManager.isAligned) { _, newValue in
             newValue
