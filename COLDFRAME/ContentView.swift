@@ -13,18 +13,34 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            Color.darkBackground.ignoresSafeArea()
+            // Fond Moderne
+            RadialGradient(colors: [Color(red: 0.1, green: 0.1, blue: 0.2), .black], center: .center, startRadius: 20, endRadius: 500)
+                .ignoresSafeArea()
             
             VStack(spacing: 20) {
                 // Titre
-                VStack {
+                VStack(spacing: 8) {
                     Text("COLDFRAME")
                         .font(.largeTitle)
-                        .tracking(5)
-                        .foregroundStyle(Color.gold)
-                    Text(qiblaManager.isAligned ? "Aligné" : "Recherche...")
-                        .font(.caption)
-                        .foregroundStyle(qiblaManager.isAligned ? Color.green : Color.white.opacity(0.5))
+                        .fontDesign(.serif)
+                        .fontWeight(.heavy)
+                        .tracking(8)
+                        .foregroundStyle(LinearGradient(colors: [.gold, .gold.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .shadow(color: .gold.opacity(0.3), radius: 10)
+
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(qiblaManager.isAligned ? Color.green : Color.red)
+                            .frame(width: 8, height: 8)
+                        Text(qiblaManager.isAligned ? "Aligné" : "Recherche...")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(qiblaManager.isAligned ? Color.green : Color.secondary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(.ultraThinMaterial)
+                    .clipShape(.capsule)
                 }
                 .padding(.top)
                 
@@ -38,19 +54,23 @@ struct ContentView: View {
                     QiblaPointer(isAligned: qiblaManager.isAligned)
                         .rotationEffect(.degrees(qiblaManager.qiblaAngle - qiblaManager.heading))
                 }
-                .animation(.interactiveSpring(response: 0.8, dampingFraction: 0.6), value: qiblaManager.heading)
+                .animation(.interactiveSpring(response: 0.6, dampingFraction: 0.6), value: qiblaManager.heading)
                 
                 Spacer()
                 
                 // Horaires
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text("Horaires de Prière")
 						.font(.headline)
+                        .fontDesign(.serif)
 						.foregroundStyle(Color.gold)
-						.padding(.leading)
+						.padding(.leading, 20)
                     PrayerTimesList(prayers: qiblaManager.prayerTimes)
                 }
-                .frame(height: 140)
+                .frame(height: 160)
+                .background(
+                    LinearGradient(colors: [.clear, .black.opacity(0.5)], startPoint: .top, endPoint: .bottom)
+                )
                 
             }
             .padding(.bottom)
