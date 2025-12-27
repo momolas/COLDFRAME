@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import CoreLocation
 
 struct ContentView: View {
     @State private var qiblaManager = QiblaManager()

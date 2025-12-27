@@ -22,11 +22,8 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     var nextPrayer: PrayerTime? = nil
     var authorizationStatus: CLAuthorizationStatus = .notDetermined
 
-    private var lastCalculationDate: Date?
-    private var lastCalculationLocation: CLLocation?
-
-    private var lastCalculationDate: Date?
-    private var lastCalculationLocation: CLLocation?
+    @ObservationIgnored private var lastCalculationDate: Date?
+    @ObservationIgnored private var lastCalculationLocation: CLLocation?
 
     // Coordonnées de la Kaaba (La Mecque)
     let meccaCoordinate = CLLocationCoordinate2D(latitude: 21.4225, longitude: 39.8262)
