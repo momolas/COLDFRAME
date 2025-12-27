@@ -14,7 +14,7 @@ extension Color {
 }
 
 // Modèle de données pour une prière
-struct PrayerTime: Identifiable {
+struct PrayerTime: Identifiable, Hashable {
 	let id = UUID()
 	let name: String
 	let time: String // Format "HH:mm"
