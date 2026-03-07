@@ -60,7 +60,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
 
         // La probabilité de voir le Hilal dépend de l'heure du Maghrib ce jour-ci
         let maghrib = self.prayerTimes.first { $0.name == "Maghrib" }?.date
-        self.hilalVisibility = AstronomicManager.getHilalVisibility(for: Date(), maghribDate: maghrib)
+        self.hilalVisibility = AstronomicManager.getHilalVisibility(for: Date(), maghribDate: maghrib, location: self.userLocation)
     }
 
     // MARK: - CoreLocation Delegate

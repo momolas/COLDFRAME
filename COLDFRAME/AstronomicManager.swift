@@ -180,7 +180,7 @@ class AstronomicManager {
 
 	/// Détermine la probabilité d'observation du Hilal (nouveau croissant de lune) le soir du Maghrib.
 	/// Cette fonction vérifie si on est le 29ème jour du mois islamique.
-	static func getHilalVisibility(for date: Date = Date(), maghribDate: Date?) -> HilalVisibility {
+	static func getHilalVisibility(for date: Date = Date(), maghribDate: Date?, location: CLLocationCoordinate2D?) -> HilalVisibility {
 		let islamicCalendar = Calendar(identifier: .islamicUmmAlQura)
 		let components = islamicCalendar.dateComponents([.day, .month], from: date)
 
@@ -192,34 +192,72 @@ class AstronomicManager {
 			return .notObservationDay
 		}
 
-		// Heure d'observation (Maghrib). Si non disponible, on utilise l'heure actuelle + qqs heures
-		let observationTime = maghribDate ?? date.addingTimeInterval(12 * 3600)
+		// Heure d'observation (Maghrib). Si non disponible, on utilise 18h00 locales par défaut
+		var componentsForMaghrib = Calendar.current.dateComponents([.year, .month, .day], from: date)
+		componentsForMaghrib.hour = 18
+		let observationTime = maghribDate ?? Calendar.current.date(from: componentsForMaghrib) ?? date
 
-		// Calcul de l'âge de la lune en heures
+		// 1. Instanciation des corps célestes avec SwiftAA
+		let julianDay = JulianDay(observationTime)
+		let moon = Moon(julianDay: julianDay)
+		let sun = Sun(julianDay: julianDay)
+
+		// 2. Calcul de l'élongation (distance angulaire entre Soleil et Lune)
+		// On utilise les coordonnées équatoriales pour calculer la distance
+		let moonCoords = moon.equatorialCoordinates
+		let sunCoords = sun.equatorialCoordinates
+
+		// Formule simplifiée de la distance angulaire (en degrés)
+		let diffRA = abs(moonCoords.rightAscension.value - sunCoords.rightAscension.value)
+		// Gestion du wrap-around (0h-24h) pour trouver le chemin le plus court
+		let shortestDiffRA = min(diffRA, 24.0 - diffRA)
+		let deltaRA = shortestDiffRA * 15.0 // Convertir Heures RA en degrés
+		let deltaDec = abs(moonCoords.declination.value - sunCoords.declination.value)
+		// Approximation de Pythagore sphérique pour l'élongation (valable pour de petits angles)
+		let elongation = sqrt((deltaRA * deltaRA) + (deltaDec * deltaDec))
+
+		// 3. Calcul de l'altitude topocentrique de la Lune au moment du Maghrib
+		var moonAltitude = 0.0
+		if let loc = location {
+			// Pour avoir l'altitude, il faut convertir les coordonnées équatoriales en coordonnées horizontales
+			let geoCoords = GeographicCoordinates(positivelyWestwardLongitude: Degree(loc.longitude), latitude: Degree(loc.latitude))
+			let horizontalCoords = moonCoords.makeHorizontalCoordinates(for: geoCoords, at: julianDay)
+			moonAltitude = horizontalCoords.altitude.value
+		}
+
+		// 4. Calcul de l'âge de la lune (via la phase)
 		let moonData = getMoonPhase(for: observationTime)
-
-		// phaseDays = nombre de jours depuis la Nouvelle Lune
-		// Si phaseDays est très grand (ex: 29.3), on est encore avant la Nouvelle Lune (fin du mois lunaire)
-		// Si phaseDays est petit (ex: 0.5 à 2.0), on a passé la Nouvelle Lune (début du nouveau mois).
-
 		let lunarCycle = 29.53058867
-
 		var ageInHours: Double
 		if moonData.phaseDays > (lunarCycle - 2.0) {
-			// La conjonction (Nouvelle Lune) n'a pas encore eu lieu, la lune est "négative" en âge
 			ageInHours = (moonData.phaseDays - lunarCycle) * 24.0
 		} else {
-			// La lune est née
 			ageInHours = moonData.phaseDays * 24.0
 		}
 
-		// L'observation est impossible si la lune est née il y a moins de 15h
-		// (le record mondial d'observation à l'œil nu est ~15h32, télescope ~11h40)
+		// 5. Critères de visibilité stricts (DanJhon, Yallop simplifié)
+
+		// A. La conjonction n'a pas eu lieu ou l'âge est < 15h
 		if ageInHours < 15.0 {
 			return .impossible
-		} else if ageInHours < 24.0 {
+		}
+
+		// B. Limite de Danjon : si l'élongation est < 8°, la lumière du soleil est bloquée par le relief lunaire
+		if elongation < 8.0 {
+			return .impossible
+		}
+
+		// C. La Lune doit être au-dessus de l'horizon au moment du Maghrib (si on a la position)
+		if location != nil && moonAltitude <= 0.0 {
+			return .impossible
+		}
+
+		// D. Évaluation finale
+		if ageInHours < 24.0 || elongation < 10.0 || (location != nil && moonAltitude < 5.0) {
+			// Visibilité difficile (nécessite un ciel parfait ou instrument optique)
 			return .difficult
 		} else {
+			// Visibilité facile à l'œil nu
 			return .visible
 		}
 	}
