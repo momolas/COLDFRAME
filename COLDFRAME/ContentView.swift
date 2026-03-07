@@ -58,6 +58,12 @@ struct ContentView: View {
                         .foregroundStyle(LinearGradient(colors: [.gold, .gold.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing))
                         .shadow(color: .gold.opacity(0.3), radius: 10)
 
+                    Text(qiblaManager.islamicDate)
+                        .font(.subheadline)
+                        .fontDesign(.serif)
+                        .foregroundStyle(Color.gold.opacity(0.8))
+                        .padding(.top, -4)
+
                     HStack(spacing: 6) {
                         Circle()
                             .fill(qiblaManager.isAligned ? Color.green : Color.red)
@@ -71,6 +77,11 @@ struct ContentView: View {
                     .padding(.vertical, 6)
                     .background(.ultraThinMaterial)
                     .clipShape(.capsule)
+
+                    if !qiblaManager.moonPhaseName.isEmpty {
+                        MoonPhaseView(moonName: qiblaManager.moonPhaseName, moonIcon: qiblaManager.moonPhaseIcon)
+                            .padding(.top, 4)
+                    }
                 }
                 .padding(.top)
                 
@@ -88,7 +99,7 @@ struct ContentView: View {
                 
                 Spacer()
                 
-                    // Horaires
+                    // Horaires et Hilal
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Horaires de Prière")
                             .font(.headline)
@@ -96,8 +107,15 @@ struct ContentView: View {
                             .foregroundStyle(Color.gold)
                             .padding(.leading, 20)
                         PrayerTimesList(prayers: qiblaManager.prayerTimes, nextPrayer: qiblaManager.nextPrayer)
+
+                        // Afficher le Tracker de Hilal uniquement si c'est le jour d'observation
+                        if qiblaManager.hilalVisibility != .notObservationDay {
+                            HilalObservationView(visibility: qiblaManager.hilalVisibility)
+                                .padding(.horizontal, 20)
+                                .padding(.top, 10)
+                        }
                     }
-                    .frame(height: 160)
+                    .padding(.bottom, qiblaManager.hilalVisibility != .notObservationDay ? 20 : 0)
                     .background(
                         LinearGradient(colors: [.clear, .black.opacity(0.5)], startPoint: .top, endPoint: .bottom)
                     )
