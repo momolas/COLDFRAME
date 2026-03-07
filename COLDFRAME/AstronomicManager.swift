@@ -76,8 +76,8 @@ class AstronomicManager {
 
             let prayerDate = Calendar.current.date(from: components) ?? date
 
-			let formattedHours = hours.formatted(.number.minimumIntegerDigits(2))
-			let formattedMinutes = minutes.formatted(.number.minimumIntegerDigits(2))
+			let formattedHours = hours.formatted(.number.precision(.integerLength(2...)))
+			let formattedMinutes = minutes.formatted(.number.precision(.integerLength(2...)))
 			return ("\(formattedHours):\(formattedMinutes)", prayerDate)
 		}
 		

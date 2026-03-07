@@ -80,7 +80,7 @@ struct PrayerTimesList: View {
                             .foregroundStyle(isNext ? .white.opacity(0.8) : .secondary)
 					}
 					.frame(width: 80, height: 100)
-					.background(isNext ? Color.gold : .regularMaterial)
+					.background(isNext ? AnyShapeStyle(Color.gold) : AnyShapeStyle(.regularMaterial))
 					.clipShape(.rect(cornerRadius: 20))
 					.overlay(
                         RoundedRectangle(cornerRadius: 20)

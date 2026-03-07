@@ -43,14 +43,13 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
 
     // MARK: - Calendrier Islamique
     private func updateIslamicDate() {
-        self.islamicDate = Date().formatted(
-            .dateTime
+        var format = Date.FormatStyle.dateTime
             .day()
             .month(.wide)
             .year()
             .locale(Locale(identifier: "fr_FR"))
-            .calendar(Calendar(identifier: .islamicUmmAlQura))
-        )
+        format.calendar = Calendar(identifier: .islamicUmmAlQura)
+        self.islamicDate = Date().formatted(format)
     }
 
     // MARK: - CoreLocation Delegate
