@@ -64,7 +64,7 @@ struct PrayerTimesList: View {
 	var body: some View {
 		ScrollView(.horizontal) {
 			HStack(spacing: 15) {
-				ForEach(Array(prayers.enumerated()), id: \.offset) { index, prayer in
+				ForEach(prayers.enumerated(), id: \.element.id) { index, prayer in
                     let isNext = prayer.id == nextPrayer?.id
 
 					VStack(spacing: 8) {
@@ -80,7 +80,7 @@ struct PrayerTimesList: View {
                             .foregroundStyle(isNext ? .white.opacity(0.8) : .secondary)
 					}
 					.frame(width: 80, height: 100)
-					.background(isNext ? Color.gold : .regularMaterial)
+					.background(isNext ? AnyShapeStyle(Color.gold) : AnyShapeStyle(.regularMaterial))
 					.clipShape(.rect(cornerRadius: 20))
 					.overlay(
                         RoundedRectangle(cornerRadius: 20)

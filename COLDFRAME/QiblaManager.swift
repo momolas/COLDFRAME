@@ -22,6 +22,8 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     var nextPrayer: PrayerTime? = nil
     var authorizationStatus: CLAuthorizationStatus = .notDetermined
 
+    var islamicDate: String = ""
+
     @ObservationIgnored private var lastCalculationDate: Date?
     @ObservationIgnored private var lastCalculationLocation: CLLocation?
 
@@ -36,6 +38,18 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         locationManager.startUpdatingLocation()
         locationManager.startUpdatingHeading()
         NotificationManager.shared.requestAuthorization()
+        updateIslamicDate()
+    }
+
+    // MARK: - Calendrier Islamique
+    private func updateIslamicDate() {
+        var format = Date.FormatStyle.dateTime
+            .day()
+            .month(.wide)
+            .year()
+            .locale(Locale(identifier: "fr_FR"))
+        format.calendar = Calendar(identifier: .islamicUmmAlQura)
+        self.islamicDate = Date().formatted(format)
     }
 
     // MARK: - CoreLocation Delegate
@@ -84,6 +98,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
 
             if shouldUpdate {
                 self.calculatePrayersLocally(for: location)
+                self.updateIslamicDate()
             }
         }
     }
