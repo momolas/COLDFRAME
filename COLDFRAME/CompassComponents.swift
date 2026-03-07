@@ -80,7 +80,7 @@ struct PrayerTimesList: View {
                             .foregroundStyle(isNext ? .white.opacity(0.8) : .secondary)
 					}
 					.frame(width: 80, height: 100)
-					.background(isNext ? Color.gold : .regularMaterial)
+					.background(isNext ? AnyShapeStyle(Color.gold) : AnyShapeStyle(.regularMaterial))
 					.clipShape(.rect(cornerRadius: 20))
 					.overlay(
                         RoundedRectangle(cornerRadius: 20)
@@ -96,4 +96,27 @@ struct PrayerTimesList: View {
 		}
         .scrollIndicators(.hidden)
 	}
+}
+
+struct MoonPhaseView: View {
+    var moonName: String
+    var moonIcon: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: moonIcon)
+                .font(.system(size: 20))
+                .foregroundStyle(Color.gold)
+            Text(moonName)
+                .font(.footnote)
+                .bold()
+                .fontDesign(.serif)
+                .foregroundStyle(.white.opacity(0.8))
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(.ultraThinMaterial)
+        .clipShape(.capsule)
+        .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 5)
+    }
 }

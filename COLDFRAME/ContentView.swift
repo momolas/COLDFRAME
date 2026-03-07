@@ -58,6 +58,12 @@ struct ContentView: View {
                         .foregroundStyle(LinearGradient(colors: [.gold, .gold.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing))
                         .shadow(color: .gold.opacity(0.3), radius: 10)
 
+                    Text(qiblaManager.islamicDate)
+                        .font(.subheadline)
+                        .fontDesign(.serif)
+                        .foregroundStyle(Color.gold.opacity(0.8))
+                        .padding(.top, -4)
+
                     HStack(spacing: 6) {
                         Circle()
                             .fill(qiblaManager.isAligned ? Color.green : Color.red)
@@ -71,6 +77,11 @@ struct ContentView: View {
                     .padding(.vertical, 6)
                     .background(.ultraThinMaterial)
                     .clipShape(.capsule)
+
+                    if !qiblaManager.moonPhaseName.isEmpty {
+                        MoonPhaseView(moonName: qiblaManager.moonPhaseName, moonIcon: qiblaManager.moonPhaseIcon)
+                            .padding(.top, 4)
+                    }
                 }
                 .padding(.top)
                 
