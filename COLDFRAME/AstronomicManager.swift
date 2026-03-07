@@ -175,4 +175,52 @@ class AstronomicManager {
 
 		return (name, icon, phaseDays)
 	}
+
+	// MARK: - Observation du Hilal
+
+	/// Détermine la probabilité d'observation du Hilal (nouveau croissant de lune) le soir du Maghrib.
+	/// Cette fonction vérifie si on est le 29ème jour du mois islamique.
+	static func getHilalVisibility(for date: Date = Date(), maghribDate: Date?) -> HilalVisibility {
+		let islamicCalendar = Calendar(identifier: .islamicUmmAlQura)
+		let components = islamicCalendar.dateComponents([.day, .month], from: date)
+
+		guard let islamicDay = components.day else { return .notObservationDay }
+
+		// Le Hilal est typiquement observé le soir du 29ème jour pour déterminer
+		// si le lendemain est le 1er du nouveau mois ou le 30ème de l'actuel.
+		if islamicDay != 29 {
+			return .notObservationDay
+		}
+
+		// Heure d'observation (Maghrib). Si non disponible, on utilise l'heure actuelle + qqs heures
+		let observationTime = maghribDate ?? date.addingTimeInterval(12 * 3600)
+
+		// Calcul de l'âge de la lune en heures
+		let moonData = getMoonPhase(for: observationTime)
+
+		// phaseDays = nombre de jours depuis la Nouvelle Lune
+		// Si phaseDays est très grand (ex: 29.3), on est encore avant la Nouvelle Lune (fin du mois lunaire)
+		// Si phaseDays est petit (ex: 0.5 à 2.0), on a passé la Nouvelle Lune (début du nouveau mois).
+
+		let lunarCycle = 29.53058867
+
+		var ageInHours: Double
+		if moonData.phaseDays > (lunarCycle - 2.0) {
+			// La conjonction (Nouvelle Lune) n'a pas encore eu lieu, la lune est "négative" en âge
+			ageInHours = (moonData.phaseDays - lunarCycle) * 24.0
+		} else {
+			// La lune est née
+			ageInHours = moonData.phaseDays * 24.0
+		}
+
+		// L'observation est impossible si la lune est née il y a moins de 15h
+		// (le record mondial d'observation à l'œil nu est ~15h32, télescope ~11h40)
+		if ageInHours < 15.0 {
+			return .impossible
+		} else if ageInHours < 24.0 {
+			return .difficult
+		} else {
+			return .visible
+		}
+	}
 }

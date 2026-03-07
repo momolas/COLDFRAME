@@ -99,7 +99,7 @@ struct ContentView: View {
                 
                 Spacer()
                 
-                    // Horaires
+                    // Horaires et Hilal
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Horaires de Prière")
                             .font(.headline)
@@ -107,8 +107,15 @@ struct ContentView: View {
                             .foregroundStyle(Color.gold)
                             .padding(.leading, 20)
                         PrayerTimesList(prayers: qiblaManager.prayerTimes, nextPrayer: qiblaManager.nextPrayer)
+
+                        // Afficher le Tracker de Hilal uniquement si c'est le jour d'observation
+                        if qiblaManager.hilalVisibility != .notObservationDay {
+                            HilalObservationView(visibility: qiblaManager.hilalVisibility)
+                                .padding(.horizontal, 20)
+                                .padding(.top, 10)
+                        }
                     }
-                    .frame(height: 160)
+                    .padding(.bottom, qiblaManager.hilalVisibility != .notObservationDay ? 20 : 0)
                     .background(
                         LinearGradient(colors: [.clear, .black.opacity(0.5)], startPoint: .top, endPoint: .bottom)
                     )

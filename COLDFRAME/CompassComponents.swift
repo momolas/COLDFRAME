@@ -120,3 +120,42 @@ struct MoonPhaseView: View {
         .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 5)
     }
 }
+
+struct HilalObservationView: View {
+    let visibility: HilalVisibility
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .foregroundStyle(Color.gold)
+                Text("Observation du Hilal ce soir")
+                    .font(.subheadline)
+                    .bold()
+                    .fontDesign(.serif)
+                    .foregroundStyle(Color.gold)
+            }
+
+            HStack(spacing: 12) {
+                Image(systemName: visibility.icon)
+                    .font(.title)
+                    .foregroundStyle(visibility.color)
+
+                Text(visibility.rawValue)
+                    .font(.footnote)
+                    .foregroundStyle(.white.opacity(0.9))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer()
+            }
+        }
+        .padding(16)
+        .background(.ultraThinMaterial)
+        .clipShape(.rect(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(Color.gold.opacity(0.3), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+    }
+}
