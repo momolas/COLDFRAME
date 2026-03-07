@@ -77,6 +77,11 @@ struct ContentView: View {
                     .padding(.vertical, 6)
                     .background(.ultraThinMaterial)
                     .clipShape(.capsule)
+
+                    if !qiblaManager.moonPhaseName.isEmpty {
+                        MoonPhaseView(moonName: qiblaManager.moonPhaseName, moonIcon: qiblaManager.moonPhaseIcon)
+                            .padding(.top, 4)
+                    }
                 }
                 .padding(.top)
                 
