@@ -76,7 +76,9 @@ class AstronomicManager {
 
             let prayerDate = Calendar.current.date(from: components) ?? date
 
-			return (String(format: "%02d:%02d", hours, minutes), prayerDate)
+			let formattedHours = hours.formatted(.number.precision(.integerLength(2...)))
+			let formattedMinutes = minutes.formatted(.number.precision(.integerLength(2...)))
+			return ("\(formattedHours):\(formattedMinutes)", prayerDate)
 		}
 		
 		// --- FAJR ---
@@ -120,5 +122,105 @@ class AstronomicManager {
 		}
 		
 		return results
+	}
+
+	// MARK: - Phase de la Lune
+
+	/// Calcule la phase approximative de la lune en jours (0 à 29.53) et retourne une icône SF Symbol appropriée ainsi qu'un nom.
+	static func getMoonPhase(for date: Date = Date()) -> (name: String, icon: String, phaseDays: Double) {
+		// On utilise un calcul mathématique simplifié basé sur une Nouvelle Lune connue (ex: 6 Jan 2000, 18:14 UTC)
+		let newMoonReference = Date(timeIntervalSince1970: 947182440)
+		let lunarCycle = 29.53058867 // Durée moyenne d'un cycle lunaire
+
+		let timeSinceNewMoon = date.timeIntervalSince(newMoonReference)
+		let daysSinceNewMoon = timeSinceNewMoon / 86400.0
+
+		var phaseDays = daysSinceNewMoon.truncatingRemainder(dividingBy: lunarCycle)
+		if phaseDays < 0 {
+			phaseDays += lunarCycle
+		}
+
+		let name: String
+		let icon: String
+
+		switch phaseDays {
+		case 0..<1.84:
+			name = "Nouvelle Lune"
+			icon = "moonphase.new.moon"
+		case 1.84..<5.53:
+			name = "Premier Croissant"
+			icon = "moonphase.waxing.crescent"
+		case 5.53..<9.22:
+			name = "Premier Quartier"
+			icon = "moonphase.first.quarter"
+		case 9.22..<12.91:
+			name = "Lune Gibbeuse Croissante"
+			icon = "moonphase.waxing.gibbous"
+		case 12.91..<16.61:
+			name = "Pleine Lune"
+			icon = "moonphase.full.moon"
+		case 16.61..<20.30:
+			name = "Lune Gibbeuse Décroissante"
+			icon = "moonphase.waning.gibbous"
+		case 20.30..<23.99:
+			name = "Dernier Quartier"
+			icon = "moonphase.last.quarter"
+		case 23.99..<27.68:
+			name = "Dernier Croissant"
+			icon = "moonphase.waning.crescent"
+		default:
+			name = "Nouvelle Lune"
+			icon = "moonphase.new.moon"
+		}
+
+		return (name, icon, phaseDays)
+	}
+
+	// MARK: - Observation du Hilal
+
+	/// Détermine la probabilité d'observation du Hilal (nouveau croissant de lune) le soir du Maghrib.
+	/// Cette fonction vérifie si on est le 29ème jour du mois islamique.
+	static func getHilalVisibility(for date: Date = Date(), maghribDate: Date?) -> HilalVisibility {
+		let islamicCalendar = Calendar(identifier: .islamicUmmAlQura)
+		let components = islamicCalendar.dateComponents([.day, .month], from: date)
+
+		guard let islamicDay = components.day else { return .notObservationDay }
+
+		// Le Hilal est typiquement observé le soir du 29ème jour pour déterminer
+		// si le lendemain est le 1er du nouveau mois ou le 30ème de l'actuel.
+		if islamicDay != 29 {
+			return .notObservationDay
+		}
+
+		// Heure d'observation (Maghrib). Si non disponible, on utilise l'heure actuelle + qqs heures
+		let observationTime = maghribDate ?? date.addingTimeInterval(12 * 3600)
+
+		// Calcul de l'âge de la lune en heures
+		let moonData = getMoonPhase(for: observationTime)
+
+		// phaseDays = nombre de jours depuis la Nouvelle Lune
+		// Si phaseDays est très grand (ex: 29.3), on est encore avant la Nouvelle Lune (fin du mois lunaire)
+		// Si phaseDays est petit (ex: 0.5 à 2.0), on a passé la Nouvelle Lune (début du nouveau mois).
+
+		let lunarCycle = 29.53058867
+
+		var ageInHours: Double
+		if moonData.phaseDays > (lunarCycle - 2.0) {
+			// La conjonction (Nouvelle Lune) n'a pas encore eu lieu, la lune est "négative" en âge
+			ageInHours = (moonData.phaseDays - lunarCycle) * 24.0
+		} else {
+			// La lune est née
+			ageInHours = moonData.phaseDays * 24.0
+		}
+
+		// L'observation est impossible si la lune est née il y a moins de 15h
+		// (le record mondial d'observation à l'œil nu est ~15h32, télescope ~11h40)
+		if ageInHours < 15.0 {
+			return .impossible
+		} else if ageInHours < 24.0 {
+			return .difficult
+		} else {
+			return .visible
+		}
 	}
 }
