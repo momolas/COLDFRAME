@@ -37,6 +37,11 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        // ⚡ Bolt: Optimize battery and CPU by filtering microscopic location/heading updates
+        // Since Qibla/prayer times only need ~5km accuracy, 50m filter is very safe
+        locationManager.distanceFilter = 50.0
+        // 1 degree filter prevents UI jitter and unnecessary trigonometric calculations
+        locationManager.headingFilter = 1.0
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         locationManager.startUpdatingHeading()
