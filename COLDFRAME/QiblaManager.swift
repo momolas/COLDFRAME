@@ -37,6 +37,13 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
+
+        // ⚡ Bolt: Performance Optimization
+        // Throttles location and heading updates to reduce unnecessary delegate callbacks,
+        // CPU usage, battery drain, and view re-renders.
+        locationManager.distanceFilter = 10.0 // Only update if device moved by > 10 meters
+        locationManager.headingFilter = 1.0   // Only update if heading changed by > 1 degree
+
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         locationManager.startUpdatingHeading()
