@@ -63,7 +63,10 @@ struct PrayerTimesList: View {
 
 	var body: some View {
 		ScrollView(.horizontal) {
-			HStack(spacing: 15) {
+            // ⚡ Bolt: Performance Optimization
+            // LazyHStack improves rendering performance inside ScrollView
+            // by only loading list items when they are visible on-screen.
+			LazyHStack(spacing: 15) {
 				ForEach(prayers.enumerated(), id: \.element.id) { index, prayer in
                     let isNext = prayer.id == nextPrayer?.id
 
