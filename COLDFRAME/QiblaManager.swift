@@ -37,6 +37,11 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
+
+        // ⚡ Bolt: Throttle updates to prevent excessive view re-renders and reduce battery drain
+        locationManager.distanceFilter = 10.0 // meters
+        locationManager.headingFilter = 1.0 // degrees
+
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         locationManager.startUpdatingHeading()
