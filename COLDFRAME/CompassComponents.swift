@@ -10,92 +10,150 @@ import SwiftUI
 import Foundation
 
 struct CompassDial: View {
-	var body: some View {
-		ZStack {
-			// Fond avec Glassmorphism
-			Circle()
-				.fill(.ultraThinMaterial)
-				.overlay(Circle().stroke(LinearGradient(colors: [.gold, .gold.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 3))
-				.shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
-			
-			// Graduations
-			ForEach(0..<60) { i in
-				// Graduation majeure tous les 5 (donc 12 principales)
-				let isMajor = i % 5 == 0
-				Rectangle()
-					.fill(isMajor ? Color.gold : Color.secondary)
-					.frame(width: isMajor ? 2 : 1, height: isMajor ? 15 : 7)
-					.offset(y: -135)
-					.rotationEffect(.degrees(Double(i) * 6))
-			}
-			
-			// Points cardinaux
-			ForEach(["N", "E", "S", "O"], id: \.self) { dir in
-				Text(dir)
-					.font(.caption).bold().foregroundStyle(.primary)
-					.offset(y: -110)
-					.rotationEffect(.degrees(dir == "N" ? 0 : dir == "E" ? 90 : dir == "S" ? 180 : 270))
-			}
-		}
-	}
+    var body: some View {
+        ZStack {
+            // Fond principal - Style Neumorphisme sombre
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [Color.darkBackground.opacity(0.8), .black],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 150
+                    )
+                )
+                .shadow(color: .white.opacity(0.05), radius: 1, x: -1, y: -1)
+                .shadow(color: .black.opacity(0.8), radius: 10, x: 5, y: 5)
+            
+            // Anneau extérieur avec reflet subtil
+            Circle()
+                .strokeBorder(
+                    AngularGradient(
+                        colors: [.gray.opacity(0.1), .white.opacity(0.2), .gray.opacity(0.1), .white.opacity(0.2), .gray.opacity(0.1)],
+                        center: .center
+                    ),
+                    lineWidth: 1.5
+                )
+            
+            // Graduations (72 traits, soit 1 trait tous les 5 degrés)
+            ForEach(0..<72) { i in
+                let isMajor = i % 18 == 0 // Tous les 90° (N, E, S, O)
+                let isMinor = i % 6 == 0  // Tous les 30°
+                
+                Rectangle()
+                    .fill(isMajor ? Color.gold : (isMinor ? Color.white.opacity(0.6) : Color.white.opacity(0.2)))
+                    .frame(width: isMajor ? 2.5 : 1, height: isMajor ? 14 : (isMinor ? 8 : 4))
+                    .offset(y: -135)
+                    .rotationEffect(.degrees(Double(i) * 5))
+            }
+            
+            // Anneau de repère intérieur pointillé
+            Circle()
+                .stroke(Color.white.opacity(0.05), style: StrokeStyle(lineWidth: 1, dash: [4, 6]))
+                .frame(width: 180, height: 180)
+            
+            // Points cardinaux
+            ForEach(["N", "E", "S", "O"], id: \.self) { dir in
+                Text(dir)
+                    .font(.system(size: 22, weight: .bold, design: .serif))
+                    .foregroundStyle(dir == "N" ? Color.gold : Color.white.opacity(0.8))
+                    .shadow(color: dir == "N" ? .gold.opacity(0.4) : .clear, radius: 5)
+                    .offset(y: -105)
+                    .rotationEffect(.degrees(dir == "N" ? 0 : dir == "E" ? 90 : dir == "S" ? 180 : 270))
+            }
+        }
+    }
 }
 
 struct QiblaPointer: View {
-	var isAligned: Bool
-	var body: some View {
-		VStack(spacing: 0) {
-			Image(systemName: "moon.stars.circle")
-				.font(.system(size: 40))
-				.foregroundStyle(isAligned ? Color.gold : .white)
-				.shadow(color: isAligned ? .gold.opacity(0.8) : .clear, radius: 20)
-                .symbolEffect(.bounce, value: isAligned)
-			Rectangle()
-				.fill(LinearGradient(colors: [isAligned ? .gold : .white, .clear], startPoint: .top, endPoint: .bottom))
-				.frame(width: 4, height: 110)
-				.clipShape(.rect(cornerRadius: 2))
-		}
-	}
+    var isAligned: Bool
+    
+    var body: some View {
+        ZStack {
+            // Aiguille Principale
+            VStack(spacing: 0) {
+                Image(systemName: "location.north.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 22, height: 22)
+                    .foregroundStyle(isAligned ? Color.green : Color.gold)
+                    .shadow(color: isAligned ? .green.opacity(0.8) : .gold.opacity(0.6), radius: 8)
+                    .symbolEffect(.pulse.byLayer, isActive: isAligned)
+                    .offset(y: -2)
+
+                // Traînée / Tige de l'aiguille
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [isAligned ? .green : .gold, .clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: 3, height: 130)
+                    .clipShape(.capsule)
+            }
+            // Décalé de la moitié de sa hauteur pour tourner exactement autour du centre
+            .offset(y: -65)
+            
+            // Point de Pivot Central (axe)
+            ZStack {
+                Circle()
+                    .fill(Color.black)
+                    .frame(width: 18, height: 18)
+                    .shadow(color: .black.opacity(0.5), radius: 3)
+                
+                Circle()
+                    .stroke(isAligned ? Color.green : Color.gold.opacity(0.8), lineWidth: 2)
+                    .frame(width: 18, height: 18)
+                
+                Circle()
+                    .fill(isAligned ? Color.green : Color.gold)
+                    .frame(width: 4, height: 4)
+            }
+        }
+    }
 }
 
 struct PrayerTimesList: View {
-	let prayers: [PrayerTime]
+    let prayers: [PrayerTime]
     var nextPrayer: PrayerTime? = nil
 
-	var body: some View {
-		ScrollView(.horizontal) {
-			HStack(spacing: 15) {
-				ForEach(prayers.enumerated(), id: \.element.id) { index, prayer in
+    var body: some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: 15) {
+                ForEach(prayers.enumerated(), id: \.element.id) { index, prayer in
                     let isNext = prayer.id == nextPrayer?.id
 
-					VStack(spacing: 8) {
-						Image(systemName: prayer.icon)
+                    VStack(spacing: 8) {
+                        Image(systemName: prayer.icon)
                             .font(.title2)
                             .foregroundStyle(isNext ? .white : Color.gold)
                             .symbolEffect(.pulse.byLayer, isActive: true)
-						Text(prayer.name)
+                        Text(prayer.name)
                             .font(.caption).bold()
                             .foregroundStyle(isNext ? .white : .primary)
-						Text(prayer.time)
+                        Text(prayer.time)
                             .font(.caption2)
                             .foregroundStyle(isNext ? .white.opacity(0.8) : .secondary)
-					}
-					.frame(width: 80, height: 100)
-					.background(isNext ? AnyShapeStyle(Color.gold) : AnyShapeStyle(.regularMaterial))
-					.clipShape(.rect(cornerRadius: 20))
-					.overlay(
+                    }
+                    .frame(width: 80, height: 100)
+                    .background(isNext ? AnyShapeStyle(Color.gold) : AnyShapeStyle(.regularMaterial))
+                    .clipShape(.rect(cornerRadius: 20))
+                    .overlay(
                         RoundedRectangle(cornerRadius: 20)
                             .strokeBorder(LinearGradient(colors: [isNext ? .white : .gold.opacity(0.5), .clear], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
                     )
                     .shadow(color: isNext ? .gold.opacity(0.5) : .black.opacity(0.2), radius: isNext ? 10 : 5, x: 0, y: 5)
                     .scaleEffect(isNext ? 1.05 : 1.0)
                     .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isNext)
-				}
-			}
-			.padding(.horizontal)
+                }
+            }
+            .padding(.horizontal)
             .contentMargins(.horizontal, 20, for: .scrollContent)
-		}
+        }
         .scrollIndicators(.hidden)
-	}
+    }
 }
 
 struct MoonPhaseView: View {
@@ -110,7 +168,7 @@ struct MoonPhaseView: View {
             Text(moonName)
                 .font(.footnote)
                 .bold()
-                .fontDesign(.serif)
+                //.fontDesign(.serif)
                 .foregroundStyle(.white.opacity(0.8))
         }
         .padding(.horizontal, 16)
@@ -132,7 +190,7 @@ struct HilalObservationView: View {
                 Text("Observation du Hilal ce soir")
                     .font(.subheadline)
                     .bold()
-                    .fontDesign(.serif)
+                    //.fontDesign(.serif)
                     .foregroundStyle(Color.gold)
             }
 
