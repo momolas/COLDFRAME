@@ -1,0 +1,3 @@
+## 2025-03-12 - [SwiftUI Lazy Loading]
+**Learning:** In SwiftUI, using standard `HStack` inside a `ScrollView` forces all child views to be rendered immediately, even if they are off-screen. This can cause unnecessary memory allocation and initial render lag, especially for collections like `PrayerTimesList`.
+**Action:** Always prefer `LazyHStack` (and `LazyVStack`) when iterating over collections inside a scroll view to optimize rendering performance, as noted in the memory context for this specific codebase.

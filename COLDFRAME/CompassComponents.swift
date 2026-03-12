@@ -63,7 +63,11 @@ struct PrayerTimesList: View {
 
 	var body: some View {
 		ScrollView(.horizontal) {
-			HStack(spacing: 15) {
+            // Bolt Performance Optimization:
+            // Using LazyHStack instead of HStack for PrayerTimesList to improve
+            // rendering performance. LazyHStack only builds views as they become
+            // visible on screen, reducing initial load time and memory usage.
+			LazyHStack(spacing: 15) {
 				ForEach(prayers.enumerated(), id: \.element.id) { index, prayer in
                     let isNext = prayer.id == nextPrayer?.id
 
