@@ -67,7 +67,7 @@ class AstronomicManager {
         return results.sorted { $0.date < $1.date }
     }
 
-    static func getMoonPhase(for date: Date = Date()) -> (name: String, icon: String, phaseDays: Double) {
+    static func getMoonPhase(for date: Date = Date()) -> (name: String, icon: String, phaseDays: Double, illuminatedFraction: Double) {
         let moon = Moon(julianDay: JulianDay(date))
         
         // Calcul manuel de l'âge de la lune en jours (Date actuelle - Dernière nouvelle lune)
@@ -89,7 +89,7 @@ class AstronomicManager {
         default: name = "Nouvelle Lune"; icon = "moonphase.new.moon"
         }
 
-        return (name, icon, phaseDays)
+        return (name, icon, phaseDays, moon.illuminatedFraction())
     }
 
     static func getHilalVisibility(for date: Date = Date(), maghribDate: Date?, location: CLLocationCoordinate2D?) -> HilalVisibility {

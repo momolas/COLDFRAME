@@ -60,8 +60,12 @@ struct ContentView: View {
                             .padding(.top, -4)
 
                         if !qiblaManager.moonPhaseName.isEmpty {
-                            MoonPhaseView(moonName: qiblaManager.moonPhaseName, moonIcon: qiblaManager.moonPhaseIcon)
-                                .padding(.top, 4)
+                            MoonPhaseView(
+                                moonName: qiblaManager.moonPhaseName,
+                                moonIcon: qiblaManager.moonPhaseIcon,
+                                illumination: qiblaManager.moonIllumination
+                            )
+                            .padding(.top, 4)
                         }
                     }
                     .padding(.top)

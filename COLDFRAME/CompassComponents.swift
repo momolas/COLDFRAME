@@ -137,13 +137,14 @@ struct PrayerTimesList: View {
 struct MoonPhaseView: View {
     var moonName: String
     var moonIcon: String
+    var illumination: Double
 
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: moonIcon)
                 .font(.system(size: 20))
                 .foregroundStyle(.blue)
-            Text(moonName)
+            Text("\(moonName) • \(illumination.formatted(.percent.precision(.fractionLength(0))))")
                 .font(.footnote)
                 .bold()
                 .foregroundStyle(.white.opacity(0.8))
