@@ -95,6 +95,13 @@ class AstronomicManager {
     static func getHilalVisibility(for date: Date = Date(), maghribDate: Date?, location: CLLocationCoordinate2D?) -> HilalVisibility {
         guard let location = location else { return .notObservationDay }
         
+        // Le Hilal est cherché uniquement le 29 du mois lunaire
+        let islamicCalendar = Calendar(identifier: .islamicUmmAlQura)
+        let day = islamicCalendar.component(.day, from: date)
+        if day != 29 {
+            return .notObservationDay
+        }
+        
         let geo = GeographicCoordinates(
             positivelyWestwardLongitude: Degree(-location.longitude),
             latitude: Degree(location.latitude)

@@ -14,8 +14,9 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            Color.clear
+            (qiblaManager.isAligned ? Color.green : Color.clear)
                 .ignoresSafeArea()
+                .animation(.easeInOut(duration: 0.6), value: qiblaManager.isAligned)
             
             if qiblaManager.authorizationStatus == .denied || qiblaManager.authorizationStatus == .restricted {
                 VStack(spacing: 20) {
@@ -50,7 +51,7 @@ struct ContentView: View {
                             .font(.largeTitle)
                             .fontWeight(.light)
                             .fontDesign(.rounded)
-                            .foregroundStyle(.green)
+                            .foregroundStyle(qiblaManager.isAligned ? .white : .green)
 
                         Text(qiblaManager.islamicDate)
                             .font(.title3)
@@ -60,12 +61,12 @@ struct ContentView: View {
 
                         HStack(spacing: 6) {
                             Circle()
-                                .fill(qiblaManager.isAligned ? Color.green : Color.red)
+                                .fill(qiblaManager.isAligned ? Color.white : Color.red)
                                 .frame(width: 8, height: 8)
                             Text(qiblaManager.isAligned ? "Aligné" : "Recherche...")
                                 .font(.caption)
                                 .fontWeight(.medium)
-                                .foregroundStyle(qiblaManager.isAligned ? Color.green : Color.secondary)
+                                .foregroundStyle(qiblaManager.isAligned ? Color.white : Color.secondary)
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)

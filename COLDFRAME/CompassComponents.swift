@@ -78,22 +78,22 @@ struct QiblaPointer: View {
         ZStack {
             // Ligne fine du centre vers le bord
             Rectangle()
-                .fill(isAligned ? Color.green : Color.green.opacity(0.7))
+                .fill(isAligned ? Color.white : Color.green.opacity(0.7))
                 .frame(width: 2, height: 135)
                 .offset(y: -67.5)
                 
             // Icône au bord du cadran
-            Image(systemName: "location.north.fill")
+            Image(systemName: "triangle.fill")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 18, height: 18)
-                .foregroundStyle(isAligned ? Color.green : Color.green.opacity(0.7))
+                .foregroundStyle(isAligned ? Color.white : Color.green.opacity(0.7))
                 .symbolEffect(.pulse.byLayer, isActive: isAligned)
                 .offset(y: -145)
             
             // Point central
             Circle()
-                .fill(isAligned ? Color.green : Color.green.opacity(0.7))
+                .fill(isAligned ? Color.white : Color.green.opacity(0.8))
                 .frame(width: 8, height: 8)
         }
     }
@@ -113,7 +113,6 @@ struct PrayerTimesList: View {
                         Image(systemName: prayer.icon)
                             .font(.title2)
                             .foregroundStyle(isNext ? .white : Color.blue)
-                            .symbolEffect(.pulse.byLayer, isActive: true)
                         Text(prayer.name)
                             .font(.caption).bold()
                             .foregroundStyle(isNext ? .white : .primary)
