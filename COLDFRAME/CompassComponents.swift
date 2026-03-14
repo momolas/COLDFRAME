@@ -12,38 +12,60 @@ import Foundation
 struct CompassDial: View {
     var body: some View {
         ZStack {
-            // Fond principal - Style plat
-            Circle()
-                .fill(Color(uiColor: .systemGray6).opacity(0.2))
-            
-            Circle()
-                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1.5)
-            
-            // Graduations (72 traits, soit 1 trait tous les 5 degrés)
-            ForEach(0..<72) { i in
-                let isMajor = i % 18 == 0 // Tous les 90° (N, E, S, O)
-                let isMinor = i % 6 == 0  // Tous les 30°
+            // Graduations (180 traits, 1 tous les 2 degrés)
+            ForEach(0..<180) { i in
+                let degree = i * 2
+                let isMajor = degree % 30 == 0
+                let isTen = degree % 10 == 0 && !isMajor
                 
                 Rectangle()
-                    .fill(isMajor ? Color.blue : (isMinor ? Color.white.opacity(0.6) : Color.white.opacity(0.2)))
-                    .frame(width: isMajor ? 2.5 : 1, height: isMajor ? 14 : (isMinor ? 8 : 4))
-                    .offset(y: -135)
-                    .rotationEffect(.degrees(Double(i) * 5))
+                    .fill(isMajor ? Color.white : (isTen ? Color.white.opacity(0.8) : Color.white.opacity(0.4)))
+                    .frame(width: isMajor ? 2.5 : 1.5, height: isMajor ? 14 : (isTen ? 10 : 6))
+                    .offset(y: -140)
+                    .rotationEffect(.degrees(Double(degree)))
             }
             
-            // Anneau de repère intérieur pointillé
-            Circle()
-                .stroke(Color.white.opacity(0.05), style: StrokeStyle(lineWidth: 1, dash: [4, 6]))
-                .frame(width: 180, height: 180)
-            
-            // Points cardinaux
-            ForEach(["N", "E", "S", "O"], id: \.self) { dir in
-                Text(dir)
-                    .font(.title2)
-                    .bold()
-                    .foregroundStyle(dir == "N" ? Color.blue : Color.white.opacity(0.8))
-                    .offset(y: -105)
-                    .rotationEffect(.degrees(dir == "N" ? 0 : dir == "E" ? 90 : dir == "S" ? 180 : 270))
+            // Labels (N, E, S, O et degrés intermédiaires)
+            ForEach(0..<12) { i in
+                let degree = i * 30
+                if degree == 0 {
+                    Text("N")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundStyle(.white)
+                        .offset(y: -105)
+                        .rotationEffect(.degrees(Double(degree)))
+                    
+                    // Triangle rouge sous le N pour marquer le Nord
+                    Image(systemName: "triangle.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.red)
+                        .offset(y: -125)
+                        .rotationEffect(.degrees(Double(degree)))
+                } else if degree == 90 {
+                    Text("E")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(.white)
+                        .offset(y: -105)
+                        .rotationEffect(.degrees(Double(degree)))
+                } else if degree == 180 {
+                    Text("S")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(.white)
+                        .offset(y: -105)
+                        .rotationEffect(.degrees(Double(degree)))
+                } else if degree == 270 {
+                    Text("O")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(.white)
+                        .offset(y: -105)
+                        .rotationEffect(.degrees(Double(degree)))
+                } else {
+                    Text(degree, format: .number.precision(.fractionLength(0)))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .offset(y: -105)
+                        .rotationEffect(.degrees(Double(degree)))
+                }
             }
         }
     }
@@ -54,46 +76,25 @@ struct QiblaPointer: View {
     
     var body: some View {
         ZStack {
-            // Aiguille Principale
-            VStack(spacing: 0) {
-                Image(systemName: "location.north.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 22, height: 22)
-                    .foregroundStyle(isAligned ? Color.green : Color.blue)
-                    .symbolEffect(.pulse.byLayer, isActive: isAligned)
-                    .offset(y: -2)
-
-                // Traînée / Tige de l'aiguille
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            colors: [isAligned ? .green : .blue, .clear],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(width: 3, height: 130)
-                    .clipShape(.capsule)
-            }
-            // Décalé de la moitié de sa hauteur pour tourner exactement autour du centre
-            .offset(y: -65)
+            // Ligne fine du centre vers le bord
+            Rectangle()
+                .fill(isAligned ? Color.green : Color.green.opacity(0.7))
+                .frame(width: 2, height: 135)
+                .offset(y: -67.5)
+                
+            // Icône au bord du cadran
+            Image(systemName: "location.north.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 18, height: 18)
+                .foregroundStyle(isAligned ? Color.green : Color.green.opacity(0.7))
+                .symbolEffect(.pulse.byLayer, isActive: isAligned)
+                .offset(y: -145)
             
-            // Point de Pivot Central (axe)
-            ZStack {
-                Circle()
-                    .fill(Color.black)
-                    .frame(width: 18, height: 18)
-                    .shadow(color: .black.opacity(0.5), radius: 3)
-                
-                Circle()
-                    .stroke(isAligned ? Color.green : Color.blue.opacity(0.8), lineWidth: 2)
-                    .frame(width: 18, height: 18)
-                
-                Circle()
-                    .fill(isAligned ? Color.green : Color.blue)
-                    .frame(width: 4, height: 4)
-            }
+            // Point central
+            Circle()
+                .fill(isAligned ? Color.green : Color.green.opacity(0.7))
+                .frame(width: 8, height: 8)
         }
     }
 }
