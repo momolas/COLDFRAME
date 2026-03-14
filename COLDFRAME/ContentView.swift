@@ -59,20 +59,6 @@ struct ContentView: View {
                             .foregroundStyle(.secondary)
                             .padding(.top, -4)
 
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(qiblaManager.isAligned ? .white : .red)
-                                .frame(width: 8, height: 8)
-                            Text(qiblaManager.isAligned ? "Aligné" : "Recherche...")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(qiblaManager.isAligned ? .white : .secondary)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(.ultraThinMaterial)
-                        .clipShape(.capsule)
-
                         if !qiblaManager.moonPhaseName.isEmpty {
                             MoonPhaseView(moonName: qiblaManager.moonPhaseName, moonIcon: qiblaManager.moonPhaseIcon)
                                 .padding(.top, 4)
