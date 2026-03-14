@@ -55,7 +55,9 @@ struct CompassDial: View {
             // Points cardinaux
             ForEach(["N", "E", "S", "O"], id: \.self) { dir in
                 Text(dir)
-                    .font(.system(size: 22, weight: .bold, design: .serif))
+                    .font(.title2)
+                    .bold()
+                    .fontDesign(.serif)
                     .foregroundStyle(dir == "N" ? Color.gold : Color.white.opacity(0.8))
                     .shadow(color: dir == "N" ? .gold.opacity(0.4) : .clear, radius: 5)
                     .offset(y: -105)

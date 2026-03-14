@@ -21,9 +21,8 @@ class AstronomicManager {
         let earth = Earth(julianDay: JulianDay(date))
         
         func format(_ date: Date) -> (String, Date) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "HH:mm"
-            return (formatter.string(from: date), date)
+            let timeString = date.formatted(date: .omitted, time: .shortened)
+            return (timeString, date)
         }
         
         var results: [PrayerTime] = []
