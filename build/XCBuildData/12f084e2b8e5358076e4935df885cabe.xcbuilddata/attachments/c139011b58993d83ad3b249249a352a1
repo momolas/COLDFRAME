@@ -1,4 +1,0 @@
-module AAplus {
-umbrella "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/AA+"
-export *
-}

@@ -1,4 +1,0 @@
-module SwiftAA {
-header "SwiftAA-Swift.h"
-export *
-}
