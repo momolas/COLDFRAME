@@ -1,0 +1,4 @@
+module AABridge {
+umbrella header "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/AABridge/include/AABridge.h"
+export *
+}

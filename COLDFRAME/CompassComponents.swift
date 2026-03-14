@@ -12,28 +12,12 @@ import Foundation
 struct CompassDial: View {
     var body: some View {
         ZStack {
-            // Fond principal - Style Neumorphisme sombre
+            // Fond principal - Style plat
             Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Color.darkBackground.opacity(0.8), .black],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 150
-                    )
-                )
-                .shadow(color: .white.opacity(0.05), radius: 1, x: -1, y: -1)
-                .shadow(color: .black.opacity(0.8), radius: 10, x: 5, y: 5)
+                .fill(Color(uiColor: .systemGray6).opacity(0.2))
             
-            // Anneau extérieur avec reflet subtil
             Circle()
-                .strokeBorder(
-                    AngularGradient(
-                        colors: [.gray.opacity(0.1), .white.opacity(0.2), .gray.opacity(0.1), .white.opacity(0.2), .gray.opacity(0.1)],
-                        center: .center
-                    ),
-                    lineWidth: 1.5
-                )
+                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1.5)
             
             // Graduations (72 traits, soit 1 trait tous les 5 degrés)
             ForEach(0..<72) { i in
@@ -41,7 +25,7 @@ struct CompassDial: View {
                 let isMinor = i % 6 == 0  // Tous les 30°
                 
                 Rectangle()
-                    .fill(isMajor ? Color.gold : (isMinor ? Color.white.opacity(0.6) : Color.white.opacity(0.2)))
+                    .fill(isMajor ? Color.blue : (isMinor ? Color.white.opacity(0.6) : Color.white.opacity(0.2)))
                     .frame(width: isMajor ? 2.5 : 1, height: isMajor ? 14 : (isMinor ? 8 : 4))
                     .offset(y: -135)
                     .rotationEffect(.degrees(Double(i) * 5))
@@ -57,9 +41,7 @@ struct CompassDial: View {
                 Text(dir)
                     .font(.title2)
                     .bold()
-                    .fontDesign(.serif)
-                    .foregroundStyle(dir == "N" ? Color.gold : Color.white.opacity(0.8))
-                    .shadow(color: dir == "N" ? .gold.opacity(0.4) : .clear, radius: 5)
+                    .foregroundStyle(dir == "N" ? Color.blue : Color.white.opacity(0.8))
                     .offset(y: -105)
                     .rotationEffect(.degrees(dir == "N" ? 0 : dir == "E" ? 90 : dir == "S" ? 180 : 270))
             }
@@ -78,8 +60,7 @@ struct QiblaPointer: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 22, height: 22)
-                    .foregroundStyle(isAligned ? Color.green : Color.gold)
-                    .shadow(color: isAligned ? .green.opacity(0.8) : .gold.opacity(0.6), radius: 8)
+                    .foregroundStyle(isAligned ? Color.green : Color.blue)
                     .symbolEffect(.pulse.byLayer, isActive: isAligned)
                     .offset(y: -2)
 
@@ -87,7 +68,7 @@ struct QiblaPointer: View {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [isAligned ? .green : .gold, .clear],
+                            colors: [isAligned ? .green : .blue, .clear],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -106,11 +87,11 @@ struct QiblaPointer: View {
                     .shadow(color: .black.opacity(0.5), radius: 3)
                 
                 Circle()
-                    .stroke(isAligned ? Color.green : Color.gold.opacity(0.8), lineWidth: 2)
+                    .stroke(isAligned ? Color.green : Color.blue.opacity(0.8), lineWidth: 2)
                     .frame(width: 18, height: 18)
                 
                 Circle()
-                    .fill(isAligned ? Color.green : Color.gold)
+                    .fill(isAligned ? Color.green : Color.blue)
                     .frame(width: 4, height: 4)
             }
         }
@@ -130,7 +111,7 @@ struct PrayerTimesList: View {
                     VStack(spacing: 8) {
                         Image(systemName: prayer.icon)
                             .font(.title2)
-                            .foregroundStyle(isNext ? .white : Color.gold)
+                            .foregroundStyle(isNext ? .white : Color.blue)
                             .symbolEffect(.pulse.byLayer, isActive: true)
                         Text(prayer.name)
                             .font(.caption).bold()
@@ -140,13 +121,8 @@ struct PrayerTimesList: View {
                             .foregroundStyle(isNext ? .white.opacity(0.8) : .secondary)
                     }
                     .frame(width: 80, height: 100)
-                    .background(isNext ? AnyShapeStyle(Color.gold) : AnyShapeStyle(.regularMaterial))
-                    .clipShape(.rect(cornerRadius: 20))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .strokeBorder(LinearGradient(colors: [isNext ? .white : .gold.opacity(0.5), .clear], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
-                    )
-                    .shadow(color: isNext ? .gold.opacity(0.5) : .black.opacity(0.2), radius: isNext ? 10 : 5, x: 0, y: 5)
+                    .background(isNext ? AnyShapeStyle(Color.blue) : AnyShapeStyle(.thinMaterial))
+                    .clipShape(.rect(cornerRadius: 5))
                     .scaleEffect(isNext ? 1.05 : 1.0)
                     .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isNext)
                 }
@@ -166,7 +142,7 @@ struct MoonPhaseView: View {
         HStack(spacing: 8) {
             Image(systemName: moonIcon)
                 .font(.system(size: 20))
-                .foregroundStyle(Color.gold)
+                .foregroundStyle(Color.blue)
             Text(moonName)
                 .font(.footnote)
                 .bold()
@@ -175,9 +151,8 @@ struct MoonPhaseView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(.ultraThinMaterial)
-        .clipShape(.capsule)
-        .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 5)
+        .background(.thinMaterial)
+        .clipShape(.rect(cornerRadius: 5))
     }
 }
 
@@ -188,12 +163,11 @@ struct HilalObservationView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Image(systemName: "sparkles")
-                    .foregroundStyle(Color.gold)
+                    .foregroundStyle(Color.blue)
                 Text("Observation du Hilal ce soir")
                     .font(.subheadline)
                     .bold()
-                    //.fontDesign(.serif)
-                    .foregroundStyle(Color.gold)
+                    .foregroundStyle(Color.blue)
             }
 
             HStack(spacing: 12) {
@@ -210,12 +184,7 @@ struct HilalObservationView: View {
             }
         }
         .padding(16)
-        .background(.ultraThinMaterial)
-        .clipShape(.rect(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(Color.gold.opacity(0.3), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+        .background(.thinMaterial)
+        .clipShape(.rect(cornerRadius: 5))
     }
 }

@@ -1,0 +1,216 @@
+{
+  "" : {
+    "const-values" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SwiftAA-primary.swiftconstvalues",
+    "dependencies" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SwiftAA-primary.d",
+    "diagnostics" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SwiftAA-primary.dia",
+    "emit-module-dependencies" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SwiftAA-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SwiftAA-primary-emit-module.dia",
+    "pch" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SwiftAA-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SwiftAA-primary.swiftdeps"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Angles.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Angles.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Angles.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Angles.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Asteroids.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Asteroids.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Asteroids.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Asteroids.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/AstronomicalCoordinates.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/AstronomicalCoordinates.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/AstronomicalCoordinates.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/AstronomicalCoordinates.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/AstronomicalObject.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/AstronomicalObject.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/AstronomicalObject.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/AstronomicalObject.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/AthmosphericRefraction.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/AthmosphericRefraction.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/AthmosphericRefraction.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/AthmosphericRefraction.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/BinaryStars.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/BinaryStars.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/BinaryStars.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/BinaryStars.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/CelestialBodies.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/CelestialBodies.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/CelestialBodies.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/CelestialBodies.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Constants.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Constants.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Constants.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Constants.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/DateExtensions.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/DateExtensions.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/DateExtensions.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/DateExtensions.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Distances.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Distances.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Distances.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Distances.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Earth.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Earth.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Earth.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Earth.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Fluxes.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Fluxes.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Fluxes.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Fluxes.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/GeographicCoordinates.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/GeographicCoordinates.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/GeographicCoordinates.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/GeographicCoordinates.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/JulianDay.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/JulianDay.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/JulianDay.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/JulianDay.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Jupiter.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Jupiter.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Jupiter.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Jupiter.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/JupiterMoons.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/JupiterMoons.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/JupiterMoons.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/JupiterMoons.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Magnitudes.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Magnitudes.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Magnitudes.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Magnitudes.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Mars.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Mars.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Mars.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Mars.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Mercury.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Mercury.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Mercury.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Mercury.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Moon.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Moon.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Moon.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Moon.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Neptune.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Neptune.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Neptune.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Neptune.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/NumericType.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/NumericType.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/NumericType.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/NumericType.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Nutation.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Nutation.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Nutation.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Nutation.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/ObjectBase.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/ObjectBase.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/ObjectBase.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/ObjectBase.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/PlanetConstants.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetConstants.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetConstants.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetConstants.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/PlanetaryBase.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryBase.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryBase.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryBase.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/PlanetaryDetails.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryDetails.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryDetails.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryDetails.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/PlanetaryOrbits.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryOrbits.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryOrbits.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryOrbits.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/PlanetaryPhenomena.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryPhenomena.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryPhenomena.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryPhenomena.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/PlanetaryPhysicalDetails.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryPhysicalDetails.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryPhysicalDetails.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/PlanetaryPhysicalDetails.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Planets.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Planets.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Planets.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Planets.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Pluto.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Pluto.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Pluto.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Pluto.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/RiseTransitSet.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/RiseTransitSet.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/RiseTransitSet.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/RiseTransitSet.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Saturn.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Saturn.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Saturn.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Saturn.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/SaturnMoons.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SaturnMoons.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SaturnMoons.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SaturnMoons.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/SaturnRings.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SaturnRings.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SaturnRings.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/SaturnRings.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/ScientificConstants.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/ScientificConstants.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/ScientificConstants.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/ScientificConstants.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Sun.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Sun.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Sun.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Sun.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Times.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Times.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Times.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Times.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Uranus.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Uranus.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Uranus.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Uranus.o"
+  },
+  "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/Sources/SwiftAA/Venus.swift" : {
+    "index-unit-output-path" : "/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Venus.o",
+    "llvm-bc" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Venus.bc",
+    "object" : "/Users/mo/Library/Developer/Xcode/DerivedData/COLDFRAME-fgcxpvwgsxtlyxbmvrkmrwjjsqom/SourcePackages/checkouts/SwiftAA/build/SwiftAA.build/Release-iphoneos/SwiftAA.build/Objects-normal/arm64/Venus.o"
+  }
+}

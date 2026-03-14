@@ -14,15 +14,14 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // Fond Moderne
-            RadialGradient(colors: [Color(red: 0.1, green: 0.1, blue: 0.2), .black], center: .center, startRadius: 20, endRadius: 500)
+            Color.clear
                 .ignoresSafeArea()
             
             if qiblaManager.authorizationStatus == .denied || qiblaManager.authorizationStatus == .restricted {
                 VStack(spacing: 20) {
                     Image(systemName: "location.slash.circle")
                         .font(.system(size: 60))
-                        .foregroundStyle(Color.gold)
+                        .foregroundStyle(.blue)
                     Text("Localisation requise")
                         .font(.title2).bold()
                         .foregroundStyle(.white)
@@ -40,9 +39,7 @@ struct ContentView: View {
                         Text("Ouvrir les Réglages")
                             .bold()
                             .padding()
-                            .background(Color.gold)
-                            .foregroundStyle(.black)
-                            .clipShape(.capsule)
+                            .background(.blue)
                     }
                 }
             } else {
@@ -51,14 +48,14 @@ struct ContentView: View {
                     VStack(spacing: 8) {
                         Text("COLDFRAME")
                             .font(.largeTitle)
-                            .fontWeight(.heavy)
-                            .tracking(8)
-                            .foregroundStyle(LinearGradient(colors: [.gold, .gold.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .shadow(color: .gold.opacity(0.3), radius: 10)
+                            .fontWeight(.light)
+                            .fontDesign(.rounded)
+                            .foregroundStyle(.green)
 
                         Text(qiblaManager.islamicDate)
-                            .font(.subheadline)
-                            .foregroundStyle(Color.gold.opacity(0.8))
+                            .font(.title3)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.secondary)
                             .padding(.top, -4)
 
                         HStack(spacing: 6) {
@@ -107,8 +104,9 @@ struct ContentView: View {
                     // Horaires et Hilal
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Horaires de Prière")
-                            .font(.headline)
-                            .foregroundStyle(Color.gold)
+                            .font(.title3)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.secondary)
                             .padding(.leading, 20)
                         PrayerTimesList(prayers: qiblaManager.prayerTimes, nextPrayer: qiblaManager.nextPrayer)
 
@@ -120,9 +118,7 @@ struct ContentView: View {
                         }
                     }
                     .padding(.bottom, qiblaManager.hilalVisibility != .notObservationDay ? 20 : 0)
-                    .background(
-                        LinearGradient(colors: [.clear, .black.opacity(0.5)], startPoint: .top, endPoint: .bottom)
-                    )
+                    .background(.clear)
                 }
                 .padding(.bottom)
             }

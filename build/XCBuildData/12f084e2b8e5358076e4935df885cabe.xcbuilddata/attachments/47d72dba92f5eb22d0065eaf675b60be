@@ -1,0 +1,51 @@
+{
+  "" : {
+    "const-values" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/COLDFRAME-primary.swiftconstvalues",
+    "dependencies" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/COLDFRAME-primary.d",
+    "diagnostics" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/COLDFRAME-primary.dia",
+    "emit-module-dependencies" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/COLDFRAME-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/COLDFRAME-primary-emit-module.dia",
+    "pch" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/COLDFRAME-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/COLDFRAME-primary.swiftdeps"
+  },
+  "/Users/mo/Developer/PROTO/COLDFRAME/COLDFRAME/AstronomicManager.swift" : {
+    "index-unit-output-path" : "/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/AstronomicManager.o",
+    "llvm-bc" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/AstronomicManager.bc",
+    "object" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/AstronomicManager.o"
+  },
+  "/Users/mo/Developer/PROTO/COLDFRAME/COLDFRAME/COLDFRAMEApp.swift" : {
+    "index-unit-output-path" : "/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/COLDFRAMEApp.o",
+    "llvm-bc" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/COLDFRAMEApp.bc",
+    "object" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/COLDFRAMEApp.o"
+  },
+  "/Users/mo/Developer/PROTO/COLDFRAME/COLDFRAME/CompassComponents.swift" : {
+    "index-unit-output-path" : "/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/CompassComponents.o",
+    "llvm-bc" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/CompassComponents.bc",
+    "object" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/CompassComponents.o"
+  },
+  "/Users/mo/Developer/PROTO/COLDFRAME/COLDFRAME/ContentView.swift" : {
+    "index-unit-output-path" : "/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/ContentView.o",
+    "llvm-bc" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/ContentView.bc",
+    "object" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/ContentView.o"
+  },
+  "/Users/mo/Developer/PROTO/COLDFRAME/COLDFRAME/Extensions.swift" : {
+    "index-unit-output-path" : "/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/Extensions.o",
+    "llvm-bc" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/Extensions.bc",
+    "object" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/Extensions.o"
+  },
+  "/Users/mo/Developer/PROTO/COLDFRAME/COLDFRAME/NotificationManager.swift" : {
+    "index-unit-output-path" : "/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/NotificationManager.o",
+    "llvm-bc" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/NotificationManager.bc",
+    "object" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/NotificationManager.o"
+  },
+  "/Users/mo/Developer/PROTO/COLDFRAME/COLDFRAME/QiblaManager.swift" : {
+    "index-unit-output-path" : "/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/QiblaManager.o",
+    "llvm-bc" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/QiblaManager.bc",
+    "object" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/QiblaManager.o"
+  },
+  "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/mo/Developer/PROTO/COLDFRAME/build/COLDFRAME.build/Release-iphoneos/COLDFRAME.build/Objects-normal/arm64/GeneratedAssetSymbols.o"
+  }
+}
