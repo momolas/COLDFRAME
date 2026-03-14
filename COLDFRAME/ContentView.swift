@@ -61,12 +61,12 @@ struct ContentView: View {
 
                         HStack(spacing: 6) {
                             Circle()
-                                .fill(qiblaManager.isAligned ? Color.white : Color.red)
+                                .fill(qiblaManager.isAligned ? .white : .red)
                                 .frame(width: 8, height: 8)
                             Text(qiblaManager.isAligned ? "Aligné" : "Recherche...")
                                 .font(.caption)
                                 .fontWeight(.medium)
-                                .foregroundStyle(qiblaManager.isAligned ? Color.white : Color.secondary)
+                                .foregroundStyle(qiblaManager.isAligned ? .white : .secondary)
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
@@ -86,7 +86,7 @@ struct ContentView: View {
                     ZStack {
                         // Halo de validation arrière-plan
                         Circle()
-                            .fill(qiblaManager.isAligned ? Color.green.opacity(0.15) : Color.clear)
+                            .fill(qiblaManager.isAligned ? .green.opacity(0.15) : .clear)
                             .frame(width: 320, height: 320)
                             .blur(radius: 20)
                             .animation(.easeInOut(duration: 0.6), value: qiblaManager.isAligned)
@@ -102,10 +102,10 @@ struct ContentView: View {
                         // Réticule central (Crosshair fixe)
                         ZStack {
                             Rectangle()
-                                .fill(Color.white.opacity(0.4))
+                                .fill(.white.opacity(0.4))
                                 .frame(width: 1, height: 40)
                             Rectangle()
-                                .fill(Color.white.opacity(0.4))
+                                .fill(.white.opacity(0.4))
                                 .frame(width: 40, height: 1)
                         }
                         .zIndex(2)
