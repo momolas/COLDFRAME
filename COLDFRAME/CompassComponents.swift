@@ -68,6 +68,7 @@ struct CompassDial: View {
                 }
             }
         }
+        .drawingGroup() // Optimize: Rasterize the 192 subviews to dramatically improve rendering performance when rotated
     }
 }
 
@@ -105,8 +106,8 @@ struct PrayerTimesList: View {
 
     var body: some View {
         ScrollView(.horizontal) {
-            HStack(spacing: 15) {
-                ForEach(prayers.enumerated(), id: \.element.id) { index, prayer in
+            LazyHStack(spacing: 15) { // Optimize: Prefer LazyHStack for collections
+                ForEach(prayers) { prayer in // Optimize: Simplify iteration since PrayerTime is Identifiable
                     let isNext = prayer.id == nextPrayer?.id
 
                     VStack(spacing: 8) {
