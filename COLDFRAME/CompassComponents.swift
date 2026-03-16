@@ -68,6 +68,9 @@ struct CompassDial: View {
                 }
             }
         }
+        // Optimize: Flatten the complex static subview hierarchy into a single Metal texture.
+        // This prevents expensive per-subview recalculations when the dial rotates on every heading update.
+        .drawingGroup()
     }
 }
 
