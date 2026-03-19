@@ -68,6 +68,9 @@ struct CompassDial: View {
                 }
             }
         }
+        // Optimize: Rasterizes the complex dial into a single Metal texture,
+        // significantly reducing CPU overhead during continuous rotation
+        .drawingGroup()
     }
 }
 
