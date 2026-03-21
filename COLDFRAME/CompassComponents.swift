@@ -68,6 +68,7 @@ struct CompassDial: View {
                 }
             }
         }
+        .drawingGroup() // Optimize: Rasterize the 190+ static subviews into a single Metal texture to reduce CPU overhead during rotation
     }
 }
 
@@ -105,8 +106,8 @@ struct PrayerTimesList: View {
 
     var body: some View {
         ScrollView(.horizontal) {
-            HStack(spacing: 15) {
-                ForEach(prayers.enumerated(), id: \.element.id) { index, prayer in
+            LazyHStack(spacing: 15) { // Optimize: Use LazyHStack for collections to improve rendering performance
+                ForEach(prayers) { prayer in // Optimize: Direct iteration on Identifiable elements, avoiding .enumerated() with KeyPath issues
                     let isNext = prayer.id == nextPrayer?.id
 
                     VStack(spacing: 8) {
