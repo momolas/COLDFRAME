@@ -111,6 +111,7 @@ struct ContentView: View {
                         // Le cadran et l'indicateur Qibla qui tournent
                         ZStack {
                             CompassDial()
+                                .drawingGroup() // Optimize: Rasterize complex static view into Metal texture
                             
                             QiblaPointer(isAligned: qiblaManager.isAligned)
                                 .rotationEffect(.degrees(qiblaManager.qiblaAngle))
