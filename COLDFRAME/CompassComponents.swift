@@ -68,6 +68,9 @@ struct CompassDial: View {
                 }
             }
         }
+        // Optimize: Rasterize the complex static view hierarchy into a single Metal texture
+        // to reduce CoreAnimation CPU overhead during frequent heading rotations.
+        .drawingGroup()
     }
 }
 
