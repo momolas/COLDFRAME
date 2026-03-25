@@ -68,6 +68,10 @@ struct CompassDial: View {
                 }
             }
         }
+        // Optimize: Offload the static dial compositing to the GPU.
+        // There are 192 static elements here; rotating them frequently via SwiftUI
+        // causes heavy CPU overhead. Rasterizing to a single Metal texture reduces CPU usage.
+        .drawingGroup()
     }
 }
 
