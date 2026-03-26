@@ -68,6 +68,7 @@ struct CompassDial: View {
                 }
             }
         }
+        .drawingGroup() // ⚡ Bolt: Rasterize complex compass dial to reduce CoreAnimation CPU overhead
     }
 }
 
