@@ -68,6 +68,9 @@ struct CompassDial: View {
                 }
             }
         }
+        // Optimize: Rasterize the 192 static subviews into a single Metal texture
+        // to drastically reduce CPU overhead during continuous compass rotation.
+        .drawingGroup()
     }
 }
 
