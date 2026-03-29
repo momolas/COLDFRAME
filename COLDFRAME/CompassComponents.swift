@@ -68,6 +68,7 @@ struct CompassDial: View {
                 }
             }
         }
+        .drawingGroup() // Optimize: Rasterize complex static dial to a single Metal texture
     }
 }
 
