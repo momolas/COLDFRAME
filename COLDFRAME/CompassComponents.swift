@@ -68,6 +68,10 @@ struct CompassDial: View {
                 }
             }
         }
+        // Optimize: Use .drawingGroup() to rasterize the complex static view hierarchy (180+ subviews)
+        // into a single Metal texture, significantly reducing CoreAnimation CPU overhead and improving frame rates
+        // during frequent rotation updates.
+        .drawingGroup()
     }
 }
 
