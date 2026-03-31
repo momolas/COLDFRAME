@@ -68,6 +68,8 @@ struct CompassDial: View {
                 }
             }
         }
+        // Optimize: Rasterize the complex static dial into a single Metal texture to reduce CoreAnimation CPU overhead during rotation
+        .drawingGroup()
     }
 }
 
