@@ -73,53 +73,8 @@ struct ContentView: View {
                     Spacer()
                     
                     // Boussole Modernisée (Style Apple)
-                    ZStack {
-                        // Halo de validation arrière-plan
-                        Circle()
-                            .fill(qiblaManager.isAligned ? .green.opacity(0.15) : .clear)
-                            .frame(width: 320, height: 320)
-                            .blur(radius: 20)
-                            .animation(.easeInOut(duration: 0.6), value: qiblaManager.isAligned)
-
-                        // Repère fixe du Nord au centre en haut
-                        Image(systemName: "triangle.fill")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.white)
-                            .rotationEffect(.degrees(180))
-                            .offset(y: -155)
-                            .zIndex(2)
-
-                        // Réticule central (Crosshair fixe)
-                        ZStack {
-                            Rectangle()
-                                .fill(.white.opacity(0.4))
-                                .frame(width: 1, height: 40)
-                            Rectangle()
-                                .fill(.white.opacity(0.4))
-                                .frame(width: 40, height: 1)
-                        }
-                        .zIndex(2)
-                        
-                        // Degré actuel au centre
-                        Text("\(qiblaManager.heading.formatted(.number.precision(.fractionLength(0))))°")
-                            .font(.system(size: 40, weight: .light))
-                            .fontDesign(.rounded)
-                            .foregroundStyle(.white)
-                            .offset(y: -55)
-                            .zIndex(2)
-
-                        // Le cadran et l'indicateur Qibla qui tournent
-                        ZStack {
-                            CompassDial()
-                            
-                            QiblaPointer(isAligned: qiblaManager.isAligned)
-                                .rotationEffect(.degrees(qiblaManager.qiblaAngle))
-                        }
-                        .frame(width: 300, height: 300)
-                        .rotationEffect(.degrees(-qiblaManager.heading))
-                    }
-                    .frame(height: 320)
-                    .animation(.interactiveSpring(response: 0.6, dampingFraction: 0.6), value: qiblaManager.heading)
+                    // Optimize: Isolated in its own view to prevent high-frequency heading updates from re-rendering the entire ContentView
+                    QiblaCompassWidget(qiblaManager: qiblaManager)
                     
                     Spacer()
                     

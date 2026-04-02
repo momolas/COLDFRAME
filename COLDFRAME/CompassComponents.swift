@@ -9,6 +9,60 @@
 import SwiftUI
 import Foundation
 
+struct QiblaCompassWidget: View {
+    var qiblaManager: QiblaManager
+
+    var body: some View {
+        ZStack {
+            // Halo de validation arrière-plan
+            Circle()
+                .fill(qiblaManager.isAligned ? .green.opacity(0.15) : .clear)
+                .frame(width: 320, height: 320)
+                .blur(radius: 20)
+                .animation(.easeInOut(duration: 0.6), value: qiblaManager.isAligned)
+
+            // Repère fixe du Nord au centre en haut
+            Image(systemName: "triangle.fill")
+                .font(.system(size: 12))
+                .foregroundStyle(.white)
+                .rotationEffect(.degrees(180))
+                .offset(y: -155)
+                .zIndex(2)
+
+            // Réticule central (Crosshair fixe)
+            ZStack {
+                Rectangle()
+                    .fill(.white.opacity(0.4))
+                    .frame(width: 1, height: 40)
+                Rectangle()
+                    .fill(.white.opacity(0.4))
+                    .frame(width: 40, height: 1)
+            }
+            .zIndex(2)
+
+            // Degré actuel au centre
+            Text("\(qiblaManager.heading.formatted(.number.precision(.fractionLength(0))))°")
+                .font(.system(size: 40, weight: .light))
+                .fontDesign(.rounded)
+                .foregroundStyle(.white)
+                .offset(y: -55)
+                .zIndex(2)
+
+            // Le cadran et l'indicateur Qibla qui tournent
+            ZStack {
+                CompassDial()
+
+                QiblaPointer(isAligned: qiblaManager.isAligned)
+                    .rotationEffect(.degrees(qiblaManager.qiblaAngle))
+            }
+            .frame(width: 300, height: 300)
+            .rotationEffect(.degrees(-qiblaManager.heading))
+        }
+        .frame(height: 320)
+        .animation(.interactiveSpring(response: 0.6, dampingFraction: 0.6), value: qiblaManager.heading)
+    }
+}
+
 struct CompassDial: View {
     var body: some View {
         ZStack {
@@ -68,6 +122,8 @@ struct CompassDial: View {
                 }
             }
         }
+        // Optimize: rasterize the complex compass dial view into a single Metal texture, significantly reducing CPU overhead during high-frequency rotation updates
+        .drawingGroup()
     }
 }
 
@@ -105,8 +161,9 @@ struct PrayerTimesList: View {
 
     var body: some View {
         ScrollView(.horizontal) {
-            HStack(spacing: 15) {
-                ForEach(prayers.enumerated(), id: \.element.id) { index, prayer in
+            // Optimize: use LazyHStack for better rendering performance of lists
+            LazyHStack(spacing: 15) {
+                ForEach(prayers) { prayer in
                     let isNext = prayer.id == nextPrayer?.id
 
                     VStack(spacing: 8) {
