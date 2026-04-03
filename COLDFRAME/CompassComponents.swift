@@ -68,7 +68,7 @@ struct CompassDial: View {
                 }
             }
         }
-        // Optimize: Rasterize the complex static dial into a single Metal texture to reduce CoreAnimation CPU overhead during rotation
+        // Optimize: Rasterize the complex rotating compass dial to a single Metal texture, reducing CPU overhead
         .drawingGroup()
     }
 }
@@ -107,8 +107,10 @@ struct PrayerTimesList: View {
 
     var body: some View {
         ScrollView(.horizontal) {
-            HStack(spacing: 15) {
-                ForEach(prayers.enumerated(), id: \.element.id) { index, prayer in
+            // Optimize: Use LazyHStack to avoid off-screen rendering
+            LazyHStack(spacing: 15) {
+                // Optimize: Avoid enumerated() tuple wrapping since index is unused
+                ForEach(prayers, id: \.id) { prayer in
                     let isNext = prayer.id == nextPrayer?.id
 
                     VStack(spacing: 8) {
