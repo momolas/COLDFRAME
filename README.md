@@ -1,4 +1,4 @@
-# COLDFRAME (Al Qibla)
+# COLDFRAME
 
 COLDFRAME is a modern, premium iOS application designed to help Muslims observe their daily and monthly religious practices. Built with SwiftUI and Swift 6.2, it combines elegant design with precise astronomical calculations.
 
