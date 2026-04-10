@@ -175,7 +175,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
                 isAligned = true
             }
         } else {
-            isAligned = false
+            // Optimize: Guard @Observable property mutation to prevent redundant main thread re-renders on high-frequency sensor updates
+            if isAligned {
+                isAligned = false
+            }
         }
     }
 }
