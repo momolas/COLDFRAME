@@ -78,18 +78,28 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         Task { @MainActor in
             // Utiliser le Vrai Nord (True Heading) si disponible, sinon le Magnétique
             let h = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
-            self.heading = h
-            self.checkAlignment()
+            // Optimize: Swift 5.9 @Observable doesn't auto-check equality, causing redundant UI updates
+            if self.heading != h {
+                self.heading = h
+                self.checkAlignment()
+            }
         }
     }
 
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         Task { @MainActor in
-            self.userLocation = location.coordinate
+            // Optimize: Guard @Observable mutation with equality check
+            if self.userLocation?.latitude != location.coordinate.latitude || self.userLocation?.longitude != location.coordinate.longitude {
+                self.userLocation = location.coordinate
+            }
 
             // 1. Calcul Qibla (Formule Mathématique Orthodromique)
-            self.qiblaAngle = self.calculateBearingToMecca(from: location)
+            let newQiblaAngle = self.calculateBearingToMecca(from: location)
+            // Optimize: Guard @Observable mutation with equality check
+            if self.qiblaAngle != newQiblaAngle {
+                self.qiblaAngle = newQiblaAngle
+            }
 
             // 2. Calcul Horaires via SwiftAA (appel au AstronomicManager)
             // On évite de recalculer trop souvent
@@ -175,7 +185,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
                 isAligned = true
             }
         } else {
-            isAligned = false
+            // Optimize: Guard @Observable mutation with equality check
+            if isAligned {
+                isAligned = false
+            }
         }
     }
 }
