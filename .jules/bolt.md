@@ -10,3 +10,6 @@
 ## 2025-10-24 - Isolating Volatile Properties in @Observable Models
 **Learning:** In iOS 17+ with the `@Observable` macro, property access dictates view invalidation. Binding high-frequency updates (like compass headings) directly within a massive parent view causes the entire view (and its siblings) to unnecessarily re-evaluate and re-render multiple times per second, leading to significant CPU overhead.
 **Action:** Extract the specific UI components that read highly volatile properties into their own dedicated subviews. This leverages Observation's precise invalidation, ensuring only the isolated subview re-renders on rapid updates, preserving the performance of the rest of the app hierarchy.
+## 2026-05-08 - Prevent Redundant @Observable Invalidations in High-Frequency Callbacks
+**Learning:** Swift 5.9's @Observable macro does not check for equality before triggering view invalidations. In high-frequency paths like sensor callbacks, this causes massive CPU overhead.
+**Action:** Always guard mutations of @Observable properties with explicit equality checks (e.g., `if property != newValue`) when updating them.
