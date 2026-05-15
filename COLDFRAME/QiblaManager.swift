@@ -78,7 +78,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         Task { @MainActor in
             // Utiliser le Vrai Nord (True Heading) si disponible, sinon le Magnétique
             let h = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
-            self.heading = h
+            // Optimize: Swift 5.9 @Observable doesn't auto-check equality. Prevent redundant view invalidations.
+            if self.heading != h {
+                self.heading = h
+            }
             self.checkAlignment()
         }
     }
@@ -86,10 +89,17 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         Task { @MainActor in
-            self.userLocation = location.coordinate
+            // Optimize: Prevent redundant view invalidations.
+            if self.userLocation?.latitude != location.coordinate.latitude || self.userLocation?.longitude != location.coordinate.longitude {
+                self.userLocation = location.coordinate
+            }
 
             // 1. Calcul Qibla (Formule Mathématique Orthodromique)
-            self.qiblaAngle = self.calculateBearingToMecca(from: location)
+            let newAngle = self.calculateBearingToMecca(from: location)
+            // Optimize: Prevent redundant view invalidations.
+            if self.qiblaAngle != newAngle {
+                self.qiblaAngle = newAngle
+            }
 
             // 2. Calcul Horaires via SwiftAA (appel au AstronomicManager)
             // On évite de recalculer trop souvent
@@ -175,7 +185,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
                 isAligned = true
             }
         } else {
-            isAligned = false
+            // Optimize: Prevent redundant writes when already false, which trigger view invalidations in @Observable
+            if isAligned {
+                isAligned = false
+            }
         }
     }
 }
