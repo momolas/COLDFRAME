@@ -70,7 +70,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     // MARK: - CoreLocation Delegate
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         Task { @MainActor in
-            self.authorizationStatus = manager.authorizationStatus
+            // Optimize: Prevent redundant main-thread view invalidation by checking equality first
+            if self.authorizationStatus != manager.authorizationStatus {
+                self.authorizationStatus = manager.authorizationStatus
+            }
         }
     }
 
@@ -78,7 +81,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         Task { @MainActor in
             // Utiliser le Vrai Nord (True Heading) si disponible, sinon le Magnétique
             let h = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
-            self.heading = h
+            // Optimize: Prevent redundant main-thread view invalidation by checking equality first
+            if self.heading != h {
+                self.heading = h
+            }
             self.checkAlignment()
         }
     }
@@ -175,7 +181,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
                 isAligned = true
             }
         } else {
-            isAligned = false
+            // Optimize: Prevent redundant main-thread view invalidation by checking equality first
+            if isAligned {
+                isAligned = false
+            }
         }
     }
 }
