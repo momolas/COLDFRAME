@@ -11,7 +11,8 @@ import SwiftAA
 
 class AstronomicManager {
     
-    static func getSolarData(for location: CLLocation, date: Date = Date()) -> [PrayerTime] {
+    @concurrent
+    static func getSolarData(for location: CLLocation, date: Date = Date()) async -> [PrayerTime] {
         let geo = GeographicCoordinates(
             positivelyWestwardLongitude: Degree(-location.coordinate.longitude),
             latitude: Degree(location.coordinate.latitude)
@@ -67,7 +68,8 @@ class AstronomicManager {
         return results.sorted { $0.date < $1.date }
     }
 
-    static func getMoonPhase(for date: Date = Date()) -> (name: String, icon: String, phaseDays: Double, illuminatedFraction: Double) {
+    @concurrent
+    static func getMoonPhase(for date: Date = Date()) async -> (name: String, icon: String, phaseDays: Double, illuminatedFraction: Double) {
         let moon = Moon(julianDay: JulianDay(date))
         
         // Calcul manuel de l'âge de la lune en jours (Date actuelle - Dernière nouvelle lune)
@@ -92,7 +94,8 @@ class AstronomicManager {
         return (name, icon, phaseDays, moon.illuminatedFraction())
     }
 
-    static func getHilalVisibility(for date: Date = Date(), maghribDate: Date?, location: CLLocationCoordinate2D?) -> HilalVisibility {
+    @concurrent
+    static func getHilalVisibility(for date: Date = Date(), maghribDate: Date?, location: CLLocationCoordinate2D?) async -> HilalVisibility {
         guard let location = location else { return .notObservationDay }
         
         // Le Hilal est cherché uniquement le 29 du mois lunaire

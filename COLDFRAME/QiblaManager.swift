@@ -44,11 +44,13 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         locationManager.startUpdatingLocation()
         locationManager.startUpdatingHeading()
         NotificationManager.shared.requestAuthorization()
-        updateIslamicDate()
+        Task {
+            await updateIslamicDate()
+        }
     }
 
     // MARK: - Calendrier Islamique
-    private func updateIslamicDate() {
+    private func updateIslamicDate() async {
         var format = Date.FormatStyle.dateTime
             .day()
             .month(.wide)
@@ -57,14 +59,14 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         format.calendar = Calendar(identifier: .islamicUmmAlQura)
         self.islamicDate = Date().formatted(format)
 
-        let moonData = AstronomicManager.getMoonPhase()
+        let moonData = await AstronomicManager.getMoonPhase()
         self.moonPhaseName = moonData.name
         self.moonPhaseIcon = moonData.icon
         self.moonIllumination = moonData.illuminatedFraction
 
         // La probabilité de voir le Hilal dépend de l'heure du Maghrib ce jour-ci
         let maghrib = self.prayerTimes.first { $0.name == "Maghrib" }?.date
-        self.hilalVisibility = AstronomicManager.getHilalVisibility(for: Date(), maghribDate: maghrib, location: self.userLocation)
+        self.hilalVisibility = await AstronomicManager.getHilalVisibility(for: Date(), maghribDate: maghrib, location: self.userLocation)
     }
 
     // MARK: - CoreLocation Delegate
@@ -112,8 +114,8 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
             }()
 
             if shouldUpdate {
-                self.calculatePrayersLocally(for: location)
-                self.updateIslamicDate()
+                await self.calculatePrayersLocally(for: location)
+                await self.updateIslamicDate()
             }
         }
     }
@@ -138,9 +140,9 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     }
 
     // MARK: - Calcul Horaires (SwiftAA)
-    func calculatePrayersLocally(for location: CLLocation) {
+    func calculatePrayersLocally(for location: CLLocation) async {
         // On délègue le travail astronomique complexe à notre Manager dédié
-        let calculatedTimes = AstronomicManager.getSolarData(for: location)
+        let calculatedTimes = await AstronomicManager.getSolarData(for: location)
 
         self.prayerTimes = calculatedTimes
         self.updateNextPrayer()

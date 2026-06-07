@@ -10,6 +10,7 @@ import Foundation
 import UserNotifications
 import os
 
+@MainActor
 class NotificationManager {
 	static let shared = NotificationManager()
 

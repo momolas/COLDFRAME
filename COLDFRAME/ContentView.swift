@@ -18,7 +18,7 @@ struct ContentView: View {
                 .animation(.easeInOut(duration: 0.6), value: qiblaManager.isAligned)
             
             if qiblaManager.authorizationStatus == .denied || qiblaManager.authorizationStatus == .restricted {
-                VStack(spacing: 20) {
+                VStack(spacing: DesignSystem.Spacing.large) {
                     Image(systemName: "location.slash.circle")
                         .font(.system(size: 60))
                         .foregroundStyle(.blue)
@@ -31,32 +31,22 @@ struct ContentView: View {
                         .foregroundStyle(.gray)
                         .padding(.horizontal)
 
-                    Button {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
-                        }
-                    } label: {
-                        Text("Ouvrir les Réglages")
-                            .bold()
-                            .padding()
-                            .background(.blue)
-                    }
+                    Button("Ouvrir les Réglages", action: openSettings)
+                        .bold()
+                        .buttonStyle(.borderedProminent)
                 }
             } else {
-                VStack(spacing: 20) {
+                VStack(spacing: DesignSystem.Spacing.large) {
                     // Titre
-                    VStack(spacing: 8) {
+                    VStack(spacing: DesignSystem.Spacing.small) {
                         Text("COLDFRAME")
-                            .font(.largeTitle)
-                            .fontWeight(.light)
+                            .font(.largeTitle.weight(.light))
                             .fontDesign(.rounded)
                             .foregroundStyle(qiblaManager.isAligned ? .white : .green)
 
                         Text(qiblaManager.islamicDate)
-                            .font(.title3)
-                            .fontWeight(.medium)
+                            .font(.title3.weight(.medium))
                             .foregroundStyle(.secondary)
-                            .padding(.top, -4)
 
                         if !qiblaManager.moonPhaseName.isEmpty {
                             MoonPhaseView(
@@ -64,7 +54,6 @@ struct ContentView: View {
                                 moonIcon: qiblaManager.moonPhaseIcon,
                                 illumination: qiblaManager.moonIllumination
                             )
-                            .padding(.top, 4)
                         }
                     }
                     .padding(.top)
@@ -77,29 +66,32 @@ struct ContentView: View {
                     Spacer()
                     
                     // Horaires et Hilal
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
                         Text("Horaires de Prière")
-                            .font(.title3)
-                            .fontWeight(.medium)
+                            .font(.title3.weight(.medium))
                             .foregroundStyle(.secondary)
-                            .padding(.leading, 20)
+                            .padding(.leading)
+                        
                         PrayerTimesList(prayers: qiblaManager.prayerTimes, nextPrayer: qiblaManager.nextPrayer)
 
                         // Afficher le Tracker de Hilal uniquement si c'est le jour d'observation
                         if qiblaManager.hilalVisibility != .notObservationDay {
                             HilalObservationView(visibility: qiblaManager.hilalVisibility)
-                                .padding(.horizontal, 20)
-                                .padding(.top, 10)
+                                .padding(.horizontal)
                         }
                     }
-                    .padding(.bottom, qiblaManager.hilalVisibility != .notObservationDay ? 20 : 0)
-                    .background(.clear)
                 }
                 .padding(.bottom)
             }
         }
         .sensoryFeedback(.impact(weight: .medium), trigger: qiblaManager.isAligned) { _, newValue in
             newValue
+        }
+    }
+    
+    private func openSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
         }
     }
 }
