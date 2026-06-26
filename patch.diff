@@ -1,0 +1,14 @@
+--- COLDFRAME/QiblaManager.swift
++++ COLDFRAME/QiblaManager.swift
+@@ -95,7 +95,10 @@
+     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+         guard let location = locations.last else { return }
+         Task { @MainActor in
+-            self.userLocation = location.coordinate
++            // Optimize: Explicit equality check to prevent redundant @Observable mutations
++            if self.userLocation?.latitude != location.coordinate.latitude || self.userLocation?.longitude != location.coordinate.longitude {
++                self.userLocation = location.coordinate
++            }
+
+             // 1. Calcul Qibla (Formule Mathématique Orthodromique)
+             let newQiblaAngle = self.calculateBearingToMecca(from: location)
