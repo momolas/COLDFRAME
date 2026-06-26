@@ -94,10 +94,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         Task { @MainActor in
-            // Optimize: Explicit equality check to prevent redundant @Observable mutations
-            if self.userLocation?.latitude != location.coordinate.latitude || self.userLocation?.longitude != location.coordinate.longitude {
-                self.userLocation = location.coordinate
-            }
+            self.userLocation = location.coordinate
 
             // 1. Calcul Qibla (Formule Mathématique Orthodromique)
             let newQiblaAngle = self.calculateBearingToMecca(from: location)
