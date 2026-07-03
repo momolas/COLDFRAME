@@ -72,7 +72,11 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     // MARK: - CoreLocation Delegate
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         Task { @MainActor in
-            self.authorizationStatus = manager.authorizationStatus
+            let status = manager.authorizationStatus
+            // Optimize: check equality to avoid unnecessary re-renders with @Observable
+            if self.authorizationStatus != status {
+                self.authorizationStatus = status
+            }
         }
     }
 
@@ -80,7 +84,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         Task { @MainActor in
             // Utiliser le Vrai Nord (True Heading) si disponible, sinon le Magnétique
             let h = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
-            self.heading = h
+            // Optimize: check equality to avoid unnecessary re-renders with @Observable
+            if self.heading != h {
+                self.heading = h
+            }
             self.checkAlignment()
         }
     }
@@ -88,10 +95,18 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         Task { @MainActor in
-            self.userLocation = location.coordinate
+            // Optimize: check equality to avoid unnecessary re-renders with @Observable
+            let newCoord = location.coordinate
+            if self.userLocation?.latitude != newCoord.latitude || self.userLocation?.longitude != newCoord.longitude {
+                self.userLocation = newCoord
+            }
 
             // 1. Calcul Qibla (Formule Mathématique Orthodromique)
-            self.qiblaAngle = self.calculateBearingToMecca(from: location)
+            let newQiblaAngle = self.calculateBearingToMecca(from: location)
+            // Optimize: check equality to avoid unnecessary re-renders with @Observable
+            if self.qiblaAngle != newQiblaAngle {
+                self.qiblaAngle = newQiblaAngle
+            }
 
             // 2. Calcul Horaires via SwiftAA (appel au AstronomicManager)
             // On évite de recalculer trop souvent
@@ -172,12 +187,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     private func checkAlignment() {
         let diff = abs(qiblaAngle - heading)
         // Tolérance de 2 degrés
-        if diff <= 2.0 || diff >= 358.0 {
-            if !isAligned {
-                isAligned = true
-            }
-        } else {
-            isAligned = false
+        let newIsAligned = diff <= 2.0 || diff >= 358.0
+        // Optimize: check equality to avoid unnecessary re-renders with @Observable
+        if isAligned != newIsAligned {
+            isAligned = newIsAligned
         }
     }
 }
