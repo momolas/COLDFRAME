@@ -25,71 +25,18 @@ struct CompassWidget: View {
     
     var body: some View {
         ZStack {
-            // Halo de validation arrière-plan
+            // Halo de validation arrière-plan lors de l'alignement
             Circle()
-                .fill(qiblaManager.isAligned ? .green.opacity(0.15) : .clear)
-                .frame(width: DesignSystem.Layout.dialSize + 20, height: DesignSystem.Layout.dialSize + 20)
+                .fill(qiblaManager.isAligned ? Color.green.opacity(0.2) : Color.clear)
+                .frame(width: DesignSystem.Layout.dialSize + 24, height: DesignSystem.Layout.dialSize + 24)
                 .blur(radius: 20)
-                .animation(.easeInOut(duration: 0.6), value: qiblaManager.isAligned)
+                .animation(.easeInOut(duration: 0.5), value: qiblaManager.isAligned)
             
-            // Repère fixe du Nord au centre en haut
-            Image(systemName: "triangle.fill")
-                .font(.system(size: 12))
-                .foregroundStyle(.white)
-                .rotationEffect(.degrees(180))
-                .offset(y: -(DesignSystem.Layout.dialSize / 2 + 5))
-                .zIndex(2)
-            
-            // Réticule central (Crosshair fixe)
-            ZStack {
-                Rectangle()
-                    .fill(.white.opacity(0.4))
-                    .frame(width: 1, height: 40)
-                Rectangle()
-                    .fill(.white.opacity(0.4))
-                    .frame(width: 40, height: 1)
-            }
-            .zIndex(2)
-            
-            // Affichage numérique central style Apple Boussole avec bascule Vrai Nord / Magnétique
-            VStack(spacing: 3) {
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(safeHeading, format: .number.precision(.fractionLength(0)))
-                        .font(.system(size: 38, weight: .light))
-                        .fontDesign(.rounded)
-                    Text("°")
-                        .font(.system(size: 28, weight: .light))
-                    Text(cardinalDirection)
-                        .font(.system(size: 22, weight: .medium))
-                        .fontDesign(.rounded)
-                        .foregroundStyle(.secondary)
-                }
-                .foregroundStyle(.white)
-
-                Button {
-                    qiblaManager.toggleNorthReference()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: qiblaManager.isTrueNorth ? "location.fill" : "safari.fill")
-                            .font(.system(size: 8))
-                        Text(qiblaManager.isTrueNorth ? "VRAI NORD" : "MAGNÉTIQUE")
-                            .font(.system(size: 8, weight: .bold))
-                    }
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 2)
-                    .background(Color.white.opacity(0.12))
-                    .foregroundStyle(qiblaManager.isTrueNorth ? .green : .orange)
-                    .clipShape(.capsule)
-                }
-                .buttonStyle(.plain)
-            }
-            .offset(y: -48)
-            .zIndex(2)
-            
-            // Cadran et indicateurs Qibla et Lune qui tournent
+            // 1. Cadran et pointeurs astronomiques (Tourne en temps réel avec le capteur)
             ZStack {
                 CompassDial()
                 
+                // Pointeur Lune
                 if qiblaManager.liveMoonPosition.azimuthDegrees > 0 {
                     MoonPointer(
                         azimuth: qiblaManager.liveMoonPosition.azimuthDegrees,
@@ -98,6 +45,7 @@ struct CompassWidget: View {
                     )
                 }
                 
+                // Pointeur Qibla (Direction La Mecque)
                 if qiblaManager.qiblaAngle > 0 {
                     QiblaPointer(isAligned: qiblaManager.isAligned)
                         .rotationEffect(.degrees(safeQiblaAngle))
@@ -105,6 +53,49 @@ struct CompassWidget: View {
             }
             .frame(width: DesignSystem.Layout.dialSize, height: DesignSystem.Layout.dialSize)
             .rotationEffect(.degrees(-safeHeading))
+            
+            // 2. Affichage Central Épuré & Lisible
+            VStack(spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 3) {
+                    Text(safeHeading, format: .number.precision(.fractionLength(0)))
+                        .font(.system(size: 44, weight: .light))
+                        .fontDesign(.rounded)
+                    Text("°")
+                        .font(.system(size: 30, weight: .light))
+                    Text(cardinalDirection)
+                        .font(.system(size: 24, weight: .semibold))
+                        .fontDesign(.rounded)
+                        .foregroundStyle(.secondary)
+                }
+                .foregroundStyle(.white)
+
+                if qiblaManager.isAligned {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 9))
+                        Text("ALIGNÉ AVEC LA MECQUE")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.green.opacity(0.3))
+                    .foregroundStyle(.green)
+                    .clipShape(.capsule)
+                } else if qiblaManager.qiblaAngle > 0 {
+                    Text("🕋 Qibla: \(Int(qiblaManager.qiblaAngle.rounded()))°")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .zIndex(2)
+
+            // 3. Repère fixe supérieur (Lubber Line à 12h)
+            Image(systemName: "triangle.fill")
+                .font(.system(size: 10))
+                .foregroundStyle(.white)
+                .rotationEffect(.degrees(180))
+                .offset(y: -(DesignSystem.Layout.dialSize / 2 + 5))
+                .zIndex(2)
         }
         .frame(height: DesignSystem.Layout.widgetHeight)
     }
