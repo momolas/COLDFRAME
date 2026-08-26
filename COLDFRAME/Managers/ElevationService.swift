@@ -23,7 +23,7 @@ actor ElevationService {
 
     private struct IGNElevationResponse: Decodable, Sendable {
         struct Point: Decodable, Sendable {
-            let z: Double
+            let z: Double?
         }
         let elevations: [Point]
     }
@@ -164,7 +164,10 @@ actor ElevationService {
 
             let decoded = try JSONDecoder().decode(IGNElevationResponse.self, from: data)
             guard decoded.elevations.count == sampleCoordinates.count else { return nil }
-            return decoded.elevations.map(\.z)
+            return decoded.elevations.map { pt in
+                let val = pt.z ?? 0.0
+                return val < -1000.0 ? 0.0 : max(0.0, val)
+            }
         } catch {
             return nil
         }
@@ -327,41 +330,64 @@ actor ElevationService {
         return (sortedPoints, peaks)
     }
 
-    /// Récupère des altitudes en découpant en requêtes batch de 50 coordonnées max
+    /// Récupère des altitudes en découpant en requêtes batch de 50 coordonnées max (exécutées en parallèle)
     private func fetchElevationsBatch(coordinates: [CLLocationCoordinate2D]) async -> [Double]? {
         guard !coordinates.isEmpty else { return [] }
-        var allElevations: [Double] = []
         let chunkSize = 50
         let posixLocale = Locale(identifier: "en_US_POSIX")
 
+        var chunks: [(index: Int, chunk: [CLLocationCoordinate2D])] = []
+        var chunkIndex = 0
         for startIdx in stride(from: 0, to: coordinates.count, by: chunkSize) {
             let endIdx = min(startIdx + chunkSize, coordinates.count)
             let chunk = Array(coordinates[startIdx..<endIdx])
+            chunks.append((index: chunkIndex, chunk: chunk))
+            chunkIndex += 1
+        }
 
-            let lats = chunk.map {
-                $0.latitude.formatted(.number.locale(posixLocale).precision(.fractionLength(4)).grouping(.never))
-            }.joined(separator: ",")
-            let lons = chunk.map {
-                $0.longitude.formatted(.number.locale(posixLocale).precision(.fractionLength(4)).grouping(.never))
-            }.joined(separator: ",")
+        let results = await withTaskGroup(of: (Int, [Double]?).self) { group -> [Int: [Double]] in
+            for item in chunks {
+                group.addTask {
+                    let lats = item.chunk.map {
+                        $0.latitude.formatted(.number.locale(posixLocale).precision(.fractionLength(4)).grouping(.never))
+                    }.joined(separator: ",")
+                    let lons = item.chunk.map {
+                        $0.longitude.formatted(.number.locale(posixLocale).precision(.fractionLength(4)).grouping(.never))
+                    }.joined(separator: ",")
 
-            guard let url = URL(string: "https://api.open-meteo.com/v1/elevation?latitude=\(lats)&longitude=\(lons)") else {
-                return nil
-            }
+                    guard let url = URL(string: "https://api.open-meteo.com/v1/elevation?latitude=\(lats)&longitude=\(lons)") else {
+                        return (item.index, nil)
+                    }
 
-            do {
-                var request = URLRequest(url: url)
-                request.timeoutInterval = 8.0
-                let (data, response) = try await URLSession.shared.data(for: request)
-                guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-                    return nil
+                    do {
+                        var request = URLRequest(url: url)
+                        request.timeoutInterval = 8.0
+                        let (data, response) = try await URLSession.shared.data(for: request)
+                        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                            return (item.index, nil)
+                        }
+                        let decoded = try JSONDecoder().decode(OpenMeteoElevationResponse.self, from: data)
+                        guard decoded.elevation.count == item.chunk.count else { return (item.index, nil) }
+                        return (item.index, decoded.elevation)
+                    } catch {
+                        return (item.index, nil)
+                    }
                 }
-                let decoded = try JSONDecoder().decode(OpenMeteoElevationResponse.self, from: data)
-                guard decoded.elevation.count == chunk.count else { return nil }
-                allElevations.append(contentsOf: decoded.elevation)
-            } catch {
-                return nil
             }
+
+            var map: [Int: [Double]] = [:]
+            for await (idx, elevations) in group {
+                if let elev = elevations {
+                    map[idx] = elev
+                }
+            }
+            return map
+        }
+
+        var allElevations: [Double] = []
+        for item in chunks {
+            guard let elev = results[item.index] else { return nil }
+            allElevations.append(contentsOf: elev)
         }
 
         return allElevations

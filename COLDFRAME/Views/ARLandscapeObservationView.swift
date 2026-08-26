@@ -268,12 +268,12 @@ struct ARLandscapeObservationView: View {
             return
         }
 
-        // On projette et trie les points de crêtes visibles dans le champ
+        // On projette et trie les points de crêtes visibles dans le champ avec une marge généreuse pour continuité totale
         var visiblePoints: [(x: CGFloat, y: CGFloat, pt: SkylinePoint)] = []
         for pt in skyline {
             let x = projectX(azimuth: pt.azimuthDegrees, yaw: yaw, screenWidth: size.width)
             let y = projectY(altitude: pt.elevationAngleDegrees, pitch: pitch, screenHeight: size.height)
-            if x >= -60 && x <= size.width + 60 {
+            if x >= -300 && x <= size.width + 300 {
                 visiblePoints.append((x, y, pt))
             }
         }
@@ -306,11 +306,11 @@ struct ARLandscapeObservationView: View {
         // Remplissage du volume de la montagne vers le bas
         if let first = visiblePoints.first, let last = visiblePoints.last {
             var fillPath = ridgePath
-            fillPath.addLine(to: CGPoint(x: last.x, y: size.height + 40))
-            fillPath.addLine(to: CGPoint(x: first.x, y: size.height + 40))
+            fillPath.addLine(to: CGPoint(x: max(last.x, size.width + 100), y: size.height + 50))
+            fillPath.addLine(to: CGPoint(x: min(first.x, -100), y: size.height + 50))
             fillPath.closeSubpath()
 
-            let fillOpacity = displayMode == .panorama ? 0.45 : 0.15
+            let fillOpacity = displayMode == .panorama ? 0.45 : 0.18
             context.fill(fillPath, with: .color(ridgeColor.opacity(fillOpacity)))
         }
     }
