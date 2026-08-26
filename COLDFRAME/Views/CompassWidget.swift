@@ -98,8 +98,10 @@ struct CompassWidget: View {
                     )
                 }
                 
-                QiblaPointer(isAligned: qiblaManager.isAligned)
-                    .rotationEffect(.degrees(safeQiblaAngle))
+                if qiblaManager.qiblaAngle > 0 {
+                    QiblaPointer(isAligned: qiblaManager.isAligned)
+                        .rotationEffect(.degrees(safeQiblaAngle))
+                }
             }
             .frame(width: DesignSystem.Layout.dialSize, height: DesignSystem.Layout.dialSize)
             .rotationEffect(.degrees(-safeHeading))

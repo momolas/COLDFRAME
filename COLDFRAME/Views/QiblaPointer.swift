@@ -12,22 +12,30 @@ struct QiblaPointer: View {
         ZStack {
             // Ligne fine du centre vers le bord
             Rectangle()
-                .fill(isAligned ? .white : .green.opacity(0.7))
-                .frame(width: 2, height: 135)
-                .offset(y: -67.5)
+                .fill(isAligned ? Color.green : Color.green.opacity(0.75))
+                .frame(width: 2, height: 130)
+                .offset(y: -65)
                 
-            // Icône au bord du cadran
-            Image(systemName: "triangle.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 18, height: 18)
-                .foregroundStyle(isAligned ? .white : .green.opacity(0.7))
-                .symbolEffect(.pulse.byLayer, isActive: isAligned)
-                .offset(y: -145)
+            // Badge distinctif QIBLA (Direction La Mecque)
+            VStack(spacing: 1) {
+                Image(systemName: "location.north.fill")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(isAligned ? Color.white : Color.green)
+                    .shadow(color: isAligned ? Color.green : Color.clear, radius: 8)
+
+                Text("QIBLA")
+                    .font(.system(size: 8, weight: .black))
+                    .foregroundStyle(isAligned ? Color.white : Color.green)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 1)
+                    .background(Color.black.opacity(0.8))
+                    .clipShape(.capsule)
+            }
+            .offset(y: -145)
             
-            // Point central
+            // Point central émeraude
             Circle()
-                .fill(isAligned ? .white : .green.opacity(0.8))
+                .fill(isAligned ? Color.white : Color.green)
                 .frame(width: 8, height: 8)
         }
     }
