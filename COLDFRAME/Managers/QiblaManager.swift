@@ -77,6 +77,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         self.startPeriodicUpdates()
     }
 
+    deinit {
+        periodicTask?.cancel()
+    }
+
     func toggleNorthReference() {
         isTrueNorth.toggle()
         let chosen = (isTrueNorth && trueHeading >= 0) ? trueHeading : magneticHeading
@@ -85,7 +89,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         self.checkAlignment()
     }
 
-    private var periodicTask: Task<Void, Never>?
+    nonisolated(unsafe) private var periodicTask: Task<Void, Never>?
 
     private func startPeriodicUpdates() {
         periodicTask?.cancel()

@@ -11,7 +11,6 @@ import SwiftAA
 
 enum AstronomicManager {
     
-    @concurrent
     static func getSolarData(for location: CLLocation, date: Date = Date()) async -> [PrayerTime] {
         let geo = GeographicCoordinates(
             positivelyWestwardLongitude: Degree(-location.coordinate.longitude),
@@ -68,7 +67,6 @@ enum AstronomicManager {
         return results.sorted { $0.date < $1.date }
     }
 
-    @concurrent
     static func getMoonPhase(for date: Date = Date()) async -> (name: String, icon: String, phaseDays: Double, illuminatedFraction: Double) {
         let moon = Moon(julianDay: JulianDay(date))
         
@@ -94,7 +92,6 @@ enum AstronomicManager {
         return (name, icon, phaseDays, moon.illuminatedFraction())
     }
 
-    @concurrent
     static func getHilalObservation(
         for date: Date = Date(),
         maghribDate: Date?,
@@ -224,15 +221,6 @@ enum AstronomicManager {
         )
     }
 
-    @concurrent
-    static func getHilalVisibility(for date: Date = Date(), maghribDate: Date?, location: CLLocationCoordinate2D?) async -> HilalVisibility {
-        guard let location = location else { return .notObservationDay }
-        let clLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
-        let data = await getHilalObservation(for: date, maghribDate: maghribDate, location: clLocation)
-        return data.visibility
-    }
-
-    @concurrent
     static func getLiveMoonPosition(for date: Date = Date(), location: CLLocation) async -> LiveMoonPosition {
         let geo = GeographicCoordinates(
             positivelyWestwardLongitude: Degree(-location.coordinate.longitude),
@@ -273,7 +261,6 @@ enum AstronomicManager {
         )
     }
 
-    @concurrent
     static func getMoonTrajectory(for date: Date = Date(), location: CLLocation) async -> [MoonTrajectoryPoint] {
         let geo = GeographicCoordinates(
             positivelyWestwardLongitude: Degree(-location.coordinate.longitude),

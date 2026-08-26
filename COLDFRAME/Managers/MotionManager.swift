@@ -13,9 +13,6 @@ final class MotionManager {
     private let motionManager = CMMotionManager()
 
     var pitchDegrees: Double = 0.0 // Élévation verticale de l'axe optique caméra (-90° à +90°)
-    var rollDegrees: Double = 0.0  // Roulis de l'appareil
-    var screenRollDegrees: Double = 0.0 // Angle d'inclinaison 2D de l'écran par rapport à l'horizon (-180° à +180°)
-    var yawDegrees: Double = 0.0   // Azimut boussole réel de visée (0° = Nord, 90° = Est, 180° = Sud, 270° = Ouest)
     var isTracking: Bool = false
 
     var isAvailable: Bool {

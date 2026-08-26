@@ -46,12 +46,10 @@ actor WeatherService {
             var closestIndex = 0
             var minDiff: TimeInterval = .greatestFiniteMagnitude
 
-            let isoFormatter = ISO8601DateFormatter()
-            isoFormatter.formatOptions = [.withFullDate, .withTime, .withDashSeparatorInDate, .withColonSeparatorInTime]
-
             for (index, timeStr) in forecast.hourly.time.enumerated() {
                 // Open-Meteo renvoie "2026-08-26T20:00"
-                if let date = isoFormatter.date(from: timeStr + ":00Z") ?? isoFormatter.date(from: timeStr) {
+                let date = (try? Date(timeStr + ":00Z", strategy: .iso8601)) ?? (try? Date(timeStr, strategy: .iso8601))
+                if let date = date {
                     let diff = abs(date.timeIntervalSince1970 - targetTimestamp)
                     if diff < minDiff {
                         minDiff = diff
@@ -80,11 +78,11 @@ actor WeatherService {
 }
 
 // MARK: - Décodage Open-Meteo
-private struct OpenMeteoResponse: Decodable {
+private nonisolated struct OpenMeteoResponse: Decodable, Sendable {
     let hourly: OpenMeteoHourly
 }
 
-private struct OpenMeteoHourly: Decodable {
+private nonisolated struct OpenMeteoHourly: Decodable, Sendable {
     let time: [String]
     let cloudCover: [Int]
     let cloudCoverLow: [Int]
@@ -107,7 +105,7 @@ private struct OpenMeteoHourly: Decodable {
 }
 
 private extension Array {
-    subscript(safe index: Index) -> Element? {
+    nonisolated subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil
     }
 }
