@@ -19,6 +19,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     var trueHeading: Double = 0.0
     var magneticHeading: Double = 0.0
     var isTrueNorth: Bool = false // Nord Magnétique par défaut pour correspondance 1:1 avec la Boussole Apple
+    var compassOffsetDegrees: Double = 0.0 // Décalage de calibrage manuel personnalisé
     var headingAccuracy: Double = -1.0
     var qiblaAngle: Double = 0.0
     var isAligned: Bool = false
@@ -79,7 +80,8 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     func toggleNorthReference() {
         isTrueNorth.toggle()
         let chosen = (isTrueNorth && trueHeading >= 0) ? trueHeading : magneticHeading
-        self.heading = chosen
+        let finalHeading = (chosen + self.compassOffsetDegrees).truncatingRemainder(dividingBy: 360.0)
+        self.heading = (finalHeading + 360.0).truncatingRemainder(dividingBy: 360.0)
         self.checkAlignment()
     }
 
@@ -223,7 +225,8 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
             }
 
             let chosen = (self.isTrueNorth && newHeading.trueHeading >= 0) ? self.trueHeading : self.magneticHeading
-            self.heading = chosen
+            let finalHeading = (chosen + self.compassOffsetDegrees).truncatingRemainder(dividingBy: 360.0)
+            self.heading = (finalHeading + 360.0).truncatingRemainder(dividingBy: 360.0)
             self.checkAlignment()
         }
     }
