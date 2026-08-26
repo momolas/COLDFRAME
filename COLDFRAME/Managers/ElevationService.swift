@@ -247,8 +247,8 @@ actor ElevationService {
         )
     }
 
-    /// Récupère la ligne de crête panoramique (Skyline 360°) autour de l'observateur
-    func fetchPanoramicSkyline(from observerLocation: CLLocation) async -> [SkylinePoint] {
+    /// Récupère la ligne de crête panoramique (Skyline 360°) et les sommets autour de l'observateur
+    func fetchPanoramicSkyline(from observerLocation: CLLocation) async -> (skyline: [SkylinePoint], peaks: [MountainPeak]) {
         let observerCoord = observerLocation.coordinate
         let observerAlt = observerLocation.altitude > -100 ? observerLocation.altitude : 0.0
 
@@ -268,7 +268,7 @@ actor ElevationService {
         // Récupération par lots de 50 points pour ne jamais dépasser la limite de l'API
         guard let elevations = await fetchElevationsBatch(coordinates: sampleCoordinates.map(\.coord)),
               elevations.count == sampleCoordinates.count else {
-            return []
+            return ([], [])
         }
 
         var skylineMap: [Double: (maxAngle: Double, dist: Double, alt: Double)] = [:]
@@ -302,7 +302,29 @@ actor ElevationService {
             )
         }
 
-        return sortedPoints
+        var peaks: [MountainPeak] = []
+        if sortedPoints.count >= 3 {
+            for i in 0..<sortedPoints.count {
+                let prev = sortedPoints[(i - 1 + sortedPoints.count) % sortedPoints.count]
+                let curr = sortedPoints[i]
+                let next = sortedPoints[(i + 1) % sortedPoints.count]
+
+                if curr.elevationAngleDegrees > prev.elevationAngleDegrees &&
+                   curr.elevationAngleDegrees > next.elevationAngleDegrees &&
+                   curr.elevationAngleDegrees > 0.3 {
+                    let name = "Crête \(Int(curr.azimuthDegrees))° • \(Int(curr.altitudeMeters))m"
+                    peaks.append(MountainPeak(
+                        name: name,
+                        azimuthDegrees: curr.azimuthDegrees,
+                        elevationAngleDegrees: curr.elevationAngleDegrees,
+                        distanceKm: curr.distanceKm,
+                        altitudeMeters: curr.altitudeMeters
+                    ))
+                }
+            }
+        }
+
+        return (sortedPoints, peaks)
     }
 
     /// Récupère des altitudes en découpant en requêtes batch de 50 coordonnées max

@@ -106,9 +106,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
             )
             async let skylineTask = ElevationService.shared.fetchPanoramicSkyline(from: loc)
 
-            let (terrain, weather, skyline) = await (terrainTask, weatherTask, skylineTask)
+            let (terrain, weather, skylineResult) = await (terrainTask, weatherTask, skylineTask)
 
-            liveMoon.skyline = skyline
+            liveMoon.skyline = skylineResult.skyline
+            liveMoon.peaks = skylineResult.peaks
             self.liveMoonPosition = liveMoon
 
             obsData.weatherConditions = weather
@@ -130,8 +131,9 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         guard let loc = lastCalculationLocation ?? locationManager.location else { return }
         if self.liveMoonPosition.skyline.isEmpty {
             Task {
-                let skyline = await ElevationService.shared.fetchPanoramicSkyline(from: loc)
-                self.liveMoonPosition.skyline = skyline
+                let skylineResult = await ElevationService.shared.fetchPanoramicSkyline(from: loc)
+                self.liveMoonPosition.skyline = skylineResult.skyline
+                self.liveMoonPosition.peaks = skylineResult.peaks
             }
         }
     }

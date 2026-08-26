@@ -7,13 +7,32 @@
 
 import SwiftUI
 
+/// Mode d'affichage façon PeakFinder :
+/// - Panorama 3D vectoriel complet (ciel crépusculaire / nuit avec crêtes ombrées)
+/// - Réalité Augmentée avec superposition caméra en direct
+enum PeakFinderDisplayMode: String, CaseIterable, Identifiable {
+    case panorama = "Panorama 3D"
+    case cameraAR = "Caméra RA"
+
+    var id: String { rawValue }
+    var icon: String {
+        switch self {
+        case .panorama: return "mountain.2.fill"
+        case .cameraAR: return "camera.viewfinder"
+        }
+    }
+}
+
 struct ARLandscapeObservationView: View {
     var qiblaManager: QiblaManager
     @State private var motionManager = MotionManager()
+    @State private var displayMode: PeakFinderDisplayMode = .panorama
+    @State private var manualAzimuthOffset: Double = 0.0 // Calibrage manuel par glissement horizontal
+    @State private var manualPitchOffset: Double = 0.0   // Calibrage vertical
 
-    // Champ de vision (FOV) moyen pour la caméra standard iPhone
-    private let fovHorizontal: Double = 65.0
-    private let fovVertical: Double = 45.0
+    // Champ de vision (FOV) optique pour l'iPhone en mode paysage
+    private let fovHorizontal: Double = 64.0
+    private let fovVertical: Double = 36.0
 
     // Couleurs dynamiques selon le mode Vision Nocturne
     private var primaryColor: Color {
@@ -32,382 +51,192 @@ struct ARLandscapeObservationView: View {
         qiblaManager.isNightVisionMode ? Color(red: 0.7, green: 0.2, blue: 0.2) : Color.green.opacity(0.85)
     }
 
+    private var ridgeColor: Color {
+        qiblaManager.isNightVisionMode ? Color.red.opacity(0.9) : Color.orange.opacity(0.9)
+    }
+
     var body: some View {
         ZStack {
-            // 1. Flux Caméra
-            ARCameraView()
-                .ignoresSafeArea()
-
-            // Filtre rouge pour la préservation de la vision nocturne
-            if qiblaManager.isNightVisionMode {
-                Color.red.opacity(0.28)
-                    .blendMode(.multiply)
+            // 1. Arrière-plan (Caméra RA ou Ciel Vectoriel PeakFinder)
+            if displayMode == .cameraAR {
+                ARCameraView()
                     .ignoresSafeArea()
+
+                if qiblaManager.isNightVisionMode {
+                    Color.red.opacity(0.28)
+                        .blendMode(.multiply)
+                        .ignoresSafeArea()
+                }
+            } else {
+                // Fond Panorama PeakFinder (Dégradé Ciel Crépusculaire / Nuit)
+                LinearGradient(
+                    colors: qiblaManager.isNightVisionMode ? [
+                        Color(red: 0.12, green: 0.02, blue: 0.02),
+                        Color(red: 0.25, green: 0.04, blue: 0.04),
+                        Color(red: 0.05, green: 0.0, blue: 0.0)
+                    ] : [
+                        Color(red: 0.04, green: 0.08, blue: 0.18),
+                        Color(red: 0.10, green: 0.20, blue: 0.38),
+                        Color(red: 0.25, green: 0.35, blue: 0.50),
+                        Color(red: 0.08, green: 0.14, blue: 0.24)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
             }
 
-            // 2. Calque Graphique AR (Canvas)
+            // 2. Calque Graphique Principal (Canvas de Rendu Panoramique 3D)
             GeometryReader { geometry in
                 let width = geometry.size.width
                 let height = geometry.size.height
-                let currentYaw = motionManager.yawDegrees
-                let currentPitch = motionManager.pitchDegrees
+                let effectiveYaw = (motionManager.yawDegrees + manualAzimuthOffset).truncatingRemainder(dividingBy: 360.0)
+                let effectivePitch = motionManager.pitchDegrees + manualPitchOffset
+                let screenCenter = CGPoint(x: width / 2.0, y: height / 2.0)
 
-                Canvas { context, size in
-                    // A. Ligne d'horizon de référence (Altitude 0°)
-                    let horizonY = projectY(altitude: 0.0, pitch: currentPitch, screenHeight: size.height)
-                    if horizonY >= -50 && horizonY <= size.height + 50 {
-                        var horizonPath = Path()
-                        horizonPath.move(to: CGPoint(x: 0, y: horizonY))
-                        horizonPath.addLine(to: CGPoint(x: size.width, y: horizonY))
-                        context.stroke(
-                            horizonPath,
-                            with: .color(horizonColor),
-                            style: StrokeStyle(lineWidth: 1.5, dash: [8, 4])
-                        )
-                    }
+                ZStack {
+                    Canvas { context, size in
+                        // A. Échelle d'Élévation Graticule (-10°, 0°, +10°, +20°, +30°)
+                        let elevationSteps = [-10.0, 0.0, 10.0, 20.0, 30.0, 45.0]
+                        for alt in elevationSteps {
+                            let y = projectY(altitude: alt, pitch: effectivePitch, screenHeight: size.height)
+                            if y >= -20 && y <= size.height + 20 {
+                                var gridLine = Path()
+                                gridLine.move(to: CGPoint(x: 0, y: y))
+                                gridLine.addLine(to: CGPoint(x: size.width, y: y))
 
-                    // B. Profil panoramique de relief MNT (Skyline 360° PeakFinder)
-                    if qiblaManager.showTerrainSkyline && !qiblaManager.liveMoonPosition.skyline.isEmpty {
-                        let skyline = qiblaManager.liveMoonPosition.skyline
-                        var visibleSkyline: [(x: CGFloat, y: CGFloat, pt: SkylinePoint)] = []
-
-                        for pt in skyline {
-                            let x = projectX(azimuth: pt.azimuthDegrees, yaw: currentYaw, screenWidth: size.width)
-                            let y = projectY(altitude: pt.elevationAngleDegrees, pitch: currentPitch, screenHeight: size.height)
-                            if x >= -80 && x <= size.width + 80 {
-                                visibleSkyline.append((x, y, pt))
+                                if alt == 0.0 {
+                                    // Horizon de Référence 0°
+                                    context.stroke(
+                                        gridLine,
+                                        with: .color(horizonColor),
+                                        style: StrokeStyle(lineWidth: 1.5, dash: [8, 4])
+                                    )
+                                } else {
+                                    // Lignes d'altitude secondaires
+                                    context.stroke(
+                                        gridLine,
+                                        with: .color(Color.white.opacity(0.12)),
+                                        style: StrokeStyle(lineWidth: 1.0, dash: [4, 8])
+                                    )
+                                }
                             }
                         }
 
-                        visibleSkyline.sort { $0.x < $1.x }
-
-                        if visibleSkyline.count >= 2 {
-                            var terrainPath = Path()
-                            terrainPath.move(to: CGPoint(x: visibleSkyline[0].x, y: visibleSkyline[0].y))
-                            for i in 1..<visibleSkyline.count {
-                                terrainPath.addLine(to: CGPoint(x: visibleSkyline[i].x, y: visibleSkyline[i].y))
-                            }
-
-                            let ridgeColor = qiblaManager.isNightVisionMode ? Color.red.opacity(0.9) : Color.orange.opacity(0.85)
-                            context.stroke(terrainPath, with: .color(ridgeColor), lineWidth: 2.2)
-
-                            // Remplissage semi-transparent sous la ligne de crête
-                            if let first = visibleSkyline.first, let last = visibleSkyline.last {
-                                var fillPath = terrainPath
-                                fillPath.addLine(to: CGPoint(x: last.x, y: size.height))
-                                fillPath.addLine(to: CGPoint(x: first.x, y: size.height))
-                                fillPath.closeSubpath()
-                                context.fill(fillPath, with: .color(ridgeColor.opacity(0.12)))
-                            }
-                        }
-                    }
-
-                    // C. Arc de Trajectoire de la Lune
-                    let trajectory = qiblaManager.liveMoonPosition.trajectory
-                    if trajectory.count > 1 {
-                        var arcPath = Path()
-                        var arcStarted = false
-
-                        for pt in trajectory {
-                            let x = projectX(azimuth: pt.azimuthDegrees, yaw: currentYaw, screenWidth: size.width)
-                            let y = projectY(altitude: pt.altitudeDegrees, pitch: currentPitch, screenHeight: size.height)
-
-                            if !arcStarted {
-                                arcPath.move(to: CGPoint(x: x, y: y))
-                                arcStarted = true
-                            } else {
-                                arcPath.addLine(to: CGPoint(x: x, y: y))
-                            }
-                        }
-
-                        context.stroke(
-                            arcPath,
-                            with: .color(primaryColor.opacity(0.7)),
-                            style: StrokeStyle(lineWidth: 2.0, dash: [4, 4])
-                        )
-                    }
-
-                    // D. Position du Soleil (si visible dans le champ)
-                    let sunAz = qiblaManager.liveMoonPosition.sunAzimuthDegrees
-                    let sunAlt = qiblaManager.liveMoonPosition.sunAltitudeDegrees
-                    let sunX = projectX(azimuth: sunAz, yaw: currentYaw, screenWidth: size.width)
-                    let sunY = projectY(altitude: sunAlt, pitch: currentPitch, screenHeight: size.height)
-
-                    if isPointInScreen(x: sunX, y: sunY, width: size.width, height: size.height) {
-                        let sunRect = CGRect(x: sunX - 16, y: sunY - 16, width: 32, height: 32)
-                        context.fill(Path(ellipseIn: sunRect), with: .color(accentSunColor.opacity(0.4)))
-                        context.stroke(Path(ellipseIn: sunRect), with: .color(accentSunColor), lineWidth: 2)
-                    }
-
-                    // E. Position actuelle de la Lune
-                    let moonAz = qiblaManager.liveMoonPosition.azimuthDegrees
-                    let moonAlt = qiblaManager.liveMoonPosition.altitudeDegrees
-                    let moonX = projectX(azimuth: moonAz, yaw: currentYaw, screenWidth: size.width)
-                    let moonY = projectY(altitude: moonAlt, pitch: currentPitch, screenHeight: size.height)
-
-                    if isPointInScreen(x: moonX, y: moonY, width: size.width, height: size.height) {
-                        let moonHalo = CGRect(x: moonX - 22, y: moonY - 22, width: 44, height: 44)
-                        context.fill(Path(ellipseIn: moonHalo), with: .color(primaryColor.opacity(0.3)))
-                        context.stroke(Path(ellipseIn: moonHalo), with: .color(primaryColor), lineWidth: 2)
-
-                        // F. Réticule Optique (Simulation FOV Jumelles 7x50 ~ 7.0°)
-                        if qiblaManager.showOpticalReticle {
-                            let fovRadius = (7.0 / fovHorizontal) * size.width / 2.0
-                            let reticleRect = CGRect(
-                                x: moonX - fovRadius,
-                                y: moonY - fovRadius,
-                                width: fovRadius * 2,
-                                height: fovRadius * 2
+                        // B. Relief 3D Panoramique (Silhouette des Montagnes & Crêtes MNT)
+                        if qiblaManager.showTerrainSkyline {
+                            drawPeakFinderTerrain(
+                                context: &context,
+                                size: size,
+                                yaw: effectiveYaw,
+                                pitch: effectivePitch
                             )
+                        }
+
+                        // C. Arc Céleste de la Trajectoire Lunaire
+                        let trajectory = qiblaManager.liveMoonPosition.trajectory
+                        if trajectory.count > 1 {
+                            var arcPath = Path()
+                            var arcStarted = false
+
+                            for pt in trajectory {
+                                let x = projectX(azimuth: pt.azimuthDegrees, yaw: effectiveYaw, screenWidth: size.width)
+                                let y = projectY(altitude: pt.altitudeDegrees, pitch: effectivePitch, screenHeight: size.height)
+
+                                if !arcStarted {
+                                    arcPath.move(to: CGPoint(x: x, y: y))
+                                    arcStarted = true
+                                } else {
+                                    arcPath.addLine(to: CGPoint(x: x, y: y))
+                                }
+                            }
+
                             context.stroke(
-                                Path(ellipseIn: reticleRect),
+                                arcPath,
                                 with: .color(primaryColor.opacity(0.75)),
-                                style: StrokeStyle(lineWidth: 1.5, dash: [8, 4])
+                                style: StrokeStyle(lineWidth: 2.2, dash: [5, 4])
                             )
+                        }
 
-                            // Croix de centrage
-                            var crossPath = Path()
-                            crossPath.move(to: CGPoint(x: moonX - 12, y: moonY))
-                            crossPath.addLine(to: CGPoint(x: moonX + 12, y: moonY))
-                            crossPath.move(to: CGPoint(x: moonX, y: moonY - 12))
-                            crossPath.addLine(to: CGPoint(x: moonX, y: moonY + 12))
-                            context.stroke(crossPath, with: .color(primaryColor.opacity(0.85)), lineWidth: 1.0)
+                        // D. Disque Solaire
+                        let sunAz = qiblaManager.liveMoonPosition.sunAzimuthDegrees
+                        let sunAlt = qiblaManager.liveMoonPosition.sunAltitudeDegrees
+                        let sunX = projectX(azimuth: sunAz, yaw: effectiveYaw, screenWidth: size.width)
+                        let sunY = projectY(altitude: sunAlt, pitch: effectivePitch, screenHeight: size.height)
+
+                        if isPointInScreen(x: sunX, y: sunY, width: size.width, height: size.height) {
+                            let sunRect = CGRect(x: sunX - 18, y: sunY - 18, width: 36, height: 36)
+                            context.fill(Path(ellipseIn: sunRect), with: .color(accentSunColor.opacity(0.3)))
+                            context.stroke(Path(ellipseIn: sunRect), with: .color(accentSunColor), lineWidth: 2)
+                        }
+
+                        // E. Disque Lunaire & Réticule Jumelles
+                        let moonAz = qiblaManager.liveMoonPosition.azimuthDegrees
+                        let moonAlt = qiblaManager.liveMoonPosition.altitudeDegrees
+                        let moonX = projectX(azimuth: moonAz, yaw: effectiveYaw, screenWidth: size.width)
+                        let moonY = projectY(altitude: moonAlt, pitch: effectivePitch, screenHeight: size.height)
+
+                        if isPointInScreen(x: moonX, y: moonY, width: size.width, height: size.height) {
+                            let moonHalo = CGRect(x: moonX - 22, y: moonY - 22, width: 44, height: 44)
+                            context.fill(Path(ellipseIn: moonHalo), with: .color(primaryColor.opacity(0.25)))
+                            context.stroke(Path(ellipseIn: moonHalo), with: .color(primaryColor), lineWidth: 2)
+
+                            // Réticule Optique FOV 7° (Simulation Jumelles 7x50)
+                            if qiblaManager.showOpticalReticle {
+                                let fovRadius = (7.0 / fovHorizontal) * size.width / 2.0
+                                let reticleRect = CGRect(
+                                    x: moonX - fovRadius,
+                                    y: moonY - fovRadius,
+                                    width: fovRadius * 2,
+                                    height: fovRadius * 2
+                                )
+                                context.stroke(
+                                    Path(ellipseIn: reticleRect),
+                                    with: .color(primaryColor.opacity(0.75)),
+                                    style: StrokeStyle(lineWidth: 1.5, dash: [8, 4])
+                                )
+
+                                var crossPath = Path()
+                                crossPath.move(to: CGPoint(x: moonX - 14, y: moonY))
+                                crossPath.addLine(to: CGPoint(x: moonX + 14, y: moonY))
+                                crossPath.move(to: CGPoint(x: moonX, y: moonY - 14))
+                                crossPath.addLine(to: CGPoint(x: moonX, y: moonY + 14))
+                                context.stroke(crossPath, with: .color(primaryColor.opacity(0.85)), lineWidth: 1.0)
+                            }
                         }
                     }
+
+                    // 3. Éléments SwiftUI interactifs : Étiquettes de Sommets & Objets Célestes
+                    renderPeakLabels(width: width, height: height, yaw: effectiveYaw, pitch: effectivePitch)
+                    renderCelestialLabels(width: width, height: height, yaw: effectiveYaw, pitch: effectivePitch)
                 }
-
-                // 3. Éléments SwiftUI interactifs en surimpression (Horizon, Lune, Soleil)
-                let horizonY = projectY(altitude: 0.0, pitch: currentPitch, screenHeight: height)
-                if horizonY >= 20 && horizonY <= height - 20 {
-                    HStack(spacing: 3) {
-                        Image(systemName: "water.waves")
-                            .font(.system(size: 8))
-                        Text("HORIZON 0°")
-                            .font(.system(size: 8, weight: .bold))
-                    }
-                    .foregroundStyle(horizonColor)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(.black.opacity(0.6))
-                    .clipShape(.capsule)
-                    .position(x: 55, y: horizonY - 12)
-                }
-
-                let moonX = projectX(azimuth: qiblaManager.liveMoonPosition.azimuthDegrees, yaw: currentYaw, screenWidth: width)
-                let moonY = projectY(altitude: qiblaManager.liveMoonPosition.altitudeDegrees, pitch: currentPitch, screenHeight: height)
-
-                if isPointInScreen(x: moonX, y: moonY, width: width, height: height) {
-                    VStack(spacing: 2) {
-                        Image(systemName: "moonphase.waxing.crescent")
-                            .font(.title2)
-                            .foregroundStyle(primaryColor)
-                            .shadow(color: primaryColor, radius: 8)
-
-                        Text("Lune (\(qiblaManager.liveMoonPosition.formattedAltitude))")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(secondaryColor)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(.black.opacity(0.65))
-                            .clipShape(.capsule)
-
-                        if qiblaManager.showOpticalReticle {
-                            Text("FOV Jumelles 7x50 (7°)")
-                                .font(.system(size: 8, weight: .medium))
-                                .foregroundStyle(primaryColor)
+                .contentShape(Rectangle())
+                // Geste de glissement pour calibrer finement l'alignement boussole (comme dans PeakFinder)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            let deltaAz = Double(-value.translation.width / width) * fovHorizontal * 0.4
+                            let deltaAlt = Double(value.translation.height / height) * fovVertical * 0.4
+                            manualAzimuthOffset = (manualAzimuthOffset + deltaAz).truncatingRemainder(dividingBy: 360.0)
+                            manualPitchOffset = max(-20.0, min(20.0, manualPitchOffset + deltaAlt))
                         }
-                    }
-                    .position(x: moonX, y: moonY - 34)
-                }
-
-                // Soleil
-                let sunX = projectX(azimuth: qiblaManager.liveMoonPosition.sunAzimuthDegrees, yaw: currentYaw, screenWidth: width)
-                let sunY = projectY(altitude: qiblaManager.liveMoonPosition.sunAltitudeDegrees, pitch: currentPitch, screenHeight: height)
-
-                if isPointInScreen(x: sunX, y: sunY, width: width, height: height) {
-                    VStack(spacing: 2) {
-                        Image(systemName: "sun.max.fill")
-                            .font(.title2)
-                            .foregroundStyle(accentSunColor)
-                            .shadow(color: accentSunColor, radius: 10)
-
-                        Text("Soleil")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(accentSunColor)
-                    }
-                    .position(x: sunX, y: sunY - 25)
-                }
+                )
             }
 
-            // 4. Bandeau supérieur avec commandes de terrain
+            // 4. Ruban de Boussole Supérieur (Style PeakFinder Ribbon)
             VStack {
-                HStack(spacing: DesignSystem.Spacing.small) {
-                    // Badge Mode RA
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(qiblaManager.isNightVisionMode ? .red : .green)
-                            .frame(width: 8, height: 8)
-                        Text(qiblaManager.isNightVisionMode ? "VISION NOCTURNE" : "MODE RA • PEAKFINDER")
-                            .font(.caption2)
-                            .bold()
-                            .foregroundStyle(secondaryColor)
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(.black.opacity(0.65))
-                    .clipShape(.capsule)
+                renderCompassRibbon()
+                    .padding(.top, 4)
 
-                    // Bouton Bascule Vision Nocturne
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            qiblaManager.isNightVisionMode.toggle()
-                        }
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: qiblaManager.isNightVisionMode ? "moon.stars.fill" : "moon.fill")
-                                .foregroundStyle(qiblaManager.isNightVisionMode ? .red : .secondary)
-                            Text(qiblaManager.isNightVisionMode ? "Filtre Rouge ON" : "Vision Nuit")
-                                .font(.caption2)
-                                .bold()
-                                .foregroundStyle(qiblaManager.isNightVisionMode ? .red : .secondary)
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(.black.opacity(0.65))
-                        .clipShape(.capsule)
-                    }
-                    .buttonStyle(.plain)
-
-                    // Bouton Réticule Optique (Jumelles)
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            qiblaManager.showOpticalReticle.toggle()
-                        }
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "circle.circle")
-                                .foregroundStyle(qiblaManager.showOpticalReticle ? primaryColor : .secondary)
-                            Text("FOV 7°")
-                                .font(.caption2)
-                                .bold()
-                                .foregroundStyle(qiblaManager.showOpticalReticle ? primaryColor : .secondary)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .background(.black.opacity(0.65))
-                        .clipShape(.capsule)
-                    }
-                    .buttonStyle(.plain)
-
-                    // Bouton Relief 3D (MNT Skyline)
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            qiblaManager.showTerrainSkyline.toggle()
-                        }
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "mountain.2.fill")
-                                .foregroundStyle(qiblaManager.showTerrainSkyline ? (qiblaManager.isNightVisionMode ? .red : .orange) : .secondary)
-                            Text("Relief 3D")
-                                .font(.caption2)
-                                .bold()
-                                .foregroundStyle(qiblaManager.showTerrainSkyline ? (qiblaManager.isNightVisionMode ? .red : .orange) : .secondary)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .background(.black.opacity(0.65))
-                        .clipShape(.capsule)
-                    }
-                    .buttonStyle(.plain)
-
-                    Spacer()
-
-                    // Indicateur de Cap & Altitude
-                    HStack(spacing: DesignSystem.Spacing.medium) {
-                        Label(
-                            "Cap: \(motionManager.yawDegrees.formatted(.number.precision(.fractionLength(0))))°",
-                            systemImage: "safari.fill"
-                        )
-                        .font(.caption)
-                        .bold()
-                        .foregroundStyle(secondaryColor)
-
-                        Label(
-                            "Inclinaison: \(motionManager.pitchDegrees.formatted(.number.precision(.fractionLength(0))))°",
-                            systemImage: "gyroscope"
-                        )
-                        .font(.caption)
-                        .bold()
-                        .foregroundStyle(secondaryColor)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 5)
-                    .background(.black.opacity(0.65))
-                    .clipShape(.capsule)
-                }
-                .padding(.horizontal)
-                .padding(.top, 10)
+                // Barre de commandes supérieure
+                renderTopControlBar()
+                    .padding(.horizontal)
+                    .padding(.top, 4)
 
                 Spacer()
 
-                // 5. Bandeau inférieur d'information, météo et guidage
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Cible : Lune (\(qiblaManager.liveMoonPosition.formattedAzimuth) • \(qiblaManager.liveMoonPosition.formattedAltitude))")
-                            .font(.caption)
-                            .bold()
-                            .foregroundStyle(primaryColor)
-
-                        if let weather = qiblaManager.hilalObservation.weatherConditions {
-                            Text("Météo : \(weather.seeingScore)% clarté (\(weather.seeingDescription)) • Nuages \(weather.cloudCoverTotalPercent)%")
-                                .font(.caption2)
-                                .foregroundStyle(secondaryColor.opacity(0.85))
-                        } else {
-                            Text(qiblaManager.liveMoonPosition.relativeSunPositionText)
-                                .font(.caption2)
-                                .foregroundStyle(secondaryColor.opacity(0.8))
-                        }
-                    }
-
-                    Spacer()
-
-                    if let bestTime = qiblaManager.hilalObservation.bestObservationTime {
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text("Créneau optimal : \(bestTime.formatted(date: .omitted, time: .shortened))")
-                                .font(.caption2)
-                                .bold()
-                                .foregroundStyle(primaryColor)
-                            Text("Lag : +\(Int(qiblaManager.hilalObservation.moonLagMinutes.rounded())) min")
-                                .font(.caption2)
-                                .foregroundStyle(secondaryColor.opacity(0.8))
-                        }
-                    }
-                }
-                .padding(.horizontal, DesignSystem.Spacing.normal)
-                .padding(.vertical, DesignSystem.Spacing.small)
-                .background(.thinMaterial)
-                .clipShape(.rect(cornerRadius: DesignSystem.Layout.cornerRadius))
-                .padding(.horizontal)
-                .padding(.bottom, 12)
-            }
-
-            // Indicateur discret de chargement du relief MNT si en cours
-            if qiblaManager.showTerrainSkyline && qiblaManager.liveMoonPosition.skyline.isEmpty {
-                VStack {
-                    Spacer()
-                    HStack(spacing: 6) {
-                        ProgressView()
-                            .controlSize(.mini)
-                        Text("Calcul du profil MNT 360°...")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(.black.opacity(0.6))
-                    .clipShape(.capsule)
-                    .padding(.bottom, 60)
-                }
+                // 5. Bandeau inférieur d'information et guidage
+                renderBottomHUD()
             }
         }
         .onAppear {
@@ -419,7 +248,337 @@ struct ARLandscapeObservationView: View {
         }
     }
 
-    // MARK: - Fonctions de Projection Perspective Optique Réelle (Pinhole Lens Model)
+    // MARK: - Tracé Panoramique Multi-Crêtes (PeakFinder Vector Landscape)
+    private func drawPeakFinderTerrain(
+        context: inout GraphicsContext,
+        size: CGSize,
+        yaw: Double,
+        pitch: Double
+    ) {
+        let skyline = qiblaManager.liveMoonPosition.skyline
+        guard !skyline.isEmpty else {
+            // Profil de secours si l'acquisition 360° est en cours
+            if let profile = qiblaManager.hilalObservation.terrainProfile, !profile.points.isEmpty {
+                var singlePath = Path()
+                let targetX = projectX(azimuth: qiblaManager.hilalObservation.azimuthDegrees, yaw: yaw, screenWidth: size.width)
+                let targetY = projectY(altitude: profile.maxObstructionAngle, pitch: pitch, screenHeight: size.height)
+                singlePath.addEllipse(in: CGRect(x: targetX - 8, y: targetY - 8, width: 16, height: 16))
+                context.stroke(singlePath, with: .color(ridgeColor), lineWidth: 2)
+            }
+            return
+        }
+
+        // On projette et trie les points de crêtes visibles dans le champ
+        var visiblePoints: [(x: CGFloat, y: CGFloat, pt: SkylinePoint)] = []
+        for pt in skyline {
+            let x = projectX(azimuth: pt.azimuthDegrees, yaw: yaw, screenWidth: size.width)
+            let y = projectY(altitude: pt.elevationAngleDegrees, pitch: pitch, screenHeight: size.height)
+            if x >= -60 && x <= size.width + 60 {
+                visiblePoints.append((x, y, pt))
+            }
+        }
+
+        visiblePoints.sort { $0.x < $1.x }
+        guard visiblePoints.count >= 2 else { return }
+
+        // Tracé de la ligne de crête continue
+        var ridgePath = Path()
+        ridgePath.move(to: CGPoint(x: visiblePoints[0].x, y: visiblePoints[0].y))
+
+        for i in 1..<visiblePoints.count {
+            let prev = visiblePoints[i - 1]
+            let curr = visiblePoints[i]
+            let midX = (prev.x + curr.x) / 2.0
+            let midY = (prev.y + curr.y) / 2.0
+            ridgePath.addQuadCurve(
+                to: CGPoint(x: curr.x, y: curr.y),
+                control: CGPoint(x: midX, y: midY)
+            )
+        }
+
+        // Ligne de crête lumineuse
+        context.stroke(
+            ridgePath,
+            with: .color(ridgeColor),
+            lineWidth: displayMode == .panorama ? 2.5 : 2.0
+        )
+
+        // Remplissage du volume de la montagne vers le bas
+        if let first = visiblePoints.first, let last = visiblePoints.last {
+            var fillPath = ridgePath
+            fillPath.addLine(to: CGPoint(x: last.x, y: size.height + 40))
+            fillPath.addLine(to: CGPoint(x: first.x, y: size.height + 40))
+            fillPath.closeSubpath()
+
+            let fillOpacity = displayMode == .panorama ? 0.45 : 0.15
+            context.fill(fillPath, with: .color(ridgeColor.opacity(fillOpacity)))
+        }
+    }
+
+    // MARK: - Rendu des Étiquettes de Sommets
+    @ViewBuilder
+    private func renderPeakLabels(width: CGFloat, height: CGFloat, yaw: Double, pitch: Double) -> some View {
+        ForEach(qiblaManager.liveMoonPosition.peaks) { peak in
+            let x = projectX(azimuth: peak.azimuthDegrees, yaw: yaw, screenWidth: width)
+            let y = projectY(altitude: peak.elevationAngleDegrees, pitch: pitch, screenHeight: height)
+
+            if isPointInScreen(x: x, y: y, width: width, height: height) {
+                VStack(spacing: 2) {
+                    // Hampe verticale de pointage vers la crête
+                    Rectangle()
+                        .fill(ridgeColor.opacity(0.8))
+                        .frame(width: 1, height: 16)
+
+                    Text("▲ " + peak.name)
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(.black.opacity(0.75))
+                        .clipShape(.rect(cornerRadius: 3))
+                }
+                .position(x: x, y: y - 22)
+            }
+        }
+    }
+
+    // MARK: - Rendu des Étiquettes Célestes (Lune & Soleil)
+    @ViewBuilder
+    private func renderCelestialLabels(width: CGFloat, height: CGFloat, yaw: Double, pitch: Double) -> some View {
+        let moonX = projectX(azimuth: qiblaManager.liveMoonPosition.azimuthDegrees, yaw: yaw, screenWidth: width)
+        let moonY = projectY(altitude: qiblaManager.liveMoonPosition.altitudeDegrees, pitch: pitch, screenHeight: height)
+
+        if isPointInScreen(x: moonX, y: moonY, width: width, height: height) {
+            VStack(spacing: 2) {
+                Image(systemName: "moonphase.waxing.crescent")
+                    .font(.title2)
+                    .foregroundStyle(primaryColor)
+                    .shadow(color: primaryColor, radius: 8)
+
+                Text("Lune (\(qiblaManager.liveMoonPosition.formattedAltitude))")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(secondaryColor)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(.black.opacity(0.7))
+                    .clipShape(.capsule)
+
+                if qiblaManager.showOpticalReticle {
+                    Text("FOV Jumelles 7x50 (7°)")
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundStyle(primaryColor)
+                }
+            }
+            .position(x: moonX, y: moonY - 34)
+        }
+
+        let sunX = projectX(azimuth: qiblaManager.liveMoonPosition.sunAzimuthDegrees, yaw: yaw, screenWidth: width)
+        let sunY = projectY(altitude: qiblaManager.liveMoonPosition.sunAltitudeDegrees, pitch: pitch, screenHeight: height)
+
+        if isPointInScreen(x: sunX, y: sunY, width: width, height: height) {
+            VStack(spacing: 2) {
+                Image(systemName: "sun.max.fill")
+                    .font(.title2)
+                    .foregroundStyle(accentSunColor)
+                    .shadow(color: accentSunColor, radius: 10)
+
+                Text("Soleil")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(accentSunColor)
+            }
+            .position(x: sunX, y: sunY - 25)
+        }
+    }
+
+    // MARK: - Ruban de Cap Boussole (Compass Tape)
+    private func renderCompassRibbon() -> some View {
+        GeometryReader { ribbonGeo in
+            let ribbonWidth = ribbonGeo.size.width
+            let effectiveYaw = (motionManager.yawDegrees + manualAzimuthOffset).truncatingRemainder(dividingBy: 360.0)
+
+            ZStack {
+                // Ticks gradués tous les 5°
+                ForEach(0..<72, id: \.self) { index in
+                    let angle = Double(index * 5)
+                    let x = projectX(azimuth: angle, yaw: effectiveYaw, screenWidth: ribbonWidth)
+
+                    if x >= 0 && x <= ribbonWidth {
+                        let isCardinal = (index % 18 == 0) // N, E, S, W
+                        let isIntercardinal = (index % 9 == 0 && !isCardinal) // NE, SE, SW, NW
+                        let isMajor = (index % 2 == 0)
+
+                        VStack(spacing: 1) {
+                            Rectangle()
+                                .fill(isCardinal ? Color.white : (isMajor ? Color.white.opacity(0.6) : Color.white.opacity(0.3)))
+                                .frame(width: isCardinal ? 2 : 1, height: isCardinal ? 12 : (isMajor ? 8 : 5))
+
+                            if isCardinal {
+                                Text(cardinalLabel(for: angle))
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(.white)
+                            } else if isIntercardinal {
+                                Text(cardinalLabel(for: angle))
+                                    .font(.system(size: 8, weight: .semibold))
+                                    .foregroundStyle(.secondary)
+                            } else if isMajor && (index % 6 == 0) {
+                                Text("\(Int(angle))°")
+                                    .font(.system(size: 7))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .position(x: x, y: 14)
+                    }
+                }
+
+                // Curseur de visée central
+                Rectangle()
+                    .fill(primaryColor)
+                    .frame(width: 2, height: 24)
+                    .position(x: ribbonWidth / 2.0, y: 12)
+            }
+        }
+        .frame(height: 28)
+        .background(.black.opacity(0.45))
+        .clipShape(.rect(cornerRadius: 6))
+        .padding(.horizontal, 40)
+    }
+
+    // MARK: - Barre de Commandes Supérieure
+    private func renderTopControlBar() -> some View {
+        HStack(spacing: DesignSystem.Spacing.small) {
+            // Sélecteur de Mode (Panorama 3D / Caméra RA)
+            Picker("Mode", selection: $displayMode) {
+                ForEach(PeakFinderDisplayMode.allCases) { mode in
+                    Label(mode.rawValue, systemImage: mode.icon).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 220)
+
+            // Bouton Bascule Vision Nocturne
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    qiblaManager.isNightVisionMode.toggle()
+                }
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: qiblaManager.isNightVisionMode ? "moon.stars.fill" : "moon.fill")
+                        .foregroundStyle(qiblaManager.isNightVisionMode ? .red : .secondary)
+                    Text(qiblaManager.isNightVisionMode ? "Filtre Rouge" : "Vision Nuit")
+                        .font(.caption2)
+                        .bold()
+                        .foregroundStyle(qiblaManager.isNightVisionMode ? .red : .secondary)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .background(.black.opacity(0.65))
+                .clipShape(.capsule)
+            }
+            .buttonStyle(.plain)
+
+            // Bouton Réticule Jumelles FOV 7°
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    qiblaManager.showOpticalReticle.toggle()
+                }
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "circle.circle")
+                        .foregroundStyle(qiblaManager.showOpticalReticle ? primaryColor : .secondary)
+                    Text("Jumelles 7°")
+                        .font(.caption2)
+                        .bold()
+                        .foregroundStyle(qiblaManager.showOpticalReticle ? primaryColor : .secondary)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .background(.black.opacity(0.65))
+                .clipShape(.capsule)
+            }
+            .buttonStyle(.plain)
+
+            // Réinitialisation du calibrage si modifié
+            if abs(manualAzimuthOffset) > 0.5 || abs(manualPitchOffset) > 0.5 {
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        manualAzimuthOffset = 0.0
+                        manualPitchOffset = 0.0
+                    }
+                }) {
+                    Text("Recalibrer (0°)")
+                        .font(.caption2)
+                        .bold()
+                        .foregroundStyle(.orange)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(.black.opacity(0.65))
+                        .clipShape(.capsule)
+                }
+                .buttonStyle(.plain)
+            }
+
+            Spacer()
+
+            // Indicateur de Cap & Altitude
+            HStack(spacing: DesignSystem.Spacing.small) {
+                Label(
+                    "Cap: \(((motionManager.yawDegrees + manualAzimuthOffset + 360).truncatingRemainder(dividingBy: 360)).formatted(.number.precision(.fractionLength(0))))°",
+                    systemImage: "safari.fill"
+                )
+                .font(.caption)
+                .bold()
+                .foregroundStyle(secondaryColor)
+
+                Label(
+                    "Inclinaison: \((motionManager.pitchDegrees + manualPitchOffset).formatted(.number.precision(.fractionLength(0))))°",
+                    systemImage: "gyroscope"
+                )
+                .font(.caption)
+                .bold()
+                .foregroundStyle(secondaryColor)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(.black.opacity(0.65))
+            .clipShape(.capsule)
+        }
+    }
+
+    // MARK: - Bandeau Inférieur HUD
+    private func renderBottomHUD() -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Lune : \(qiblaManager.liveMoonPosition.formattedAzimuth) • Élévation \(qiblaManager.liveMoonPosition.formattedAltitude)")
+                    .font(.caption)
+                    .bold()
+                    .foregroundStyle(primaryColor)
+
+                if let weather = qiblaManager.hilalObservation.weatherConditions {
+                    Text("Clarté ciel : \(weather.seeingScore)% (\(weather.seeingDescription)) • Nuages \(weather.cloudCoverTotalPercent)%")
+                        .font(.caption2)
+                        .foregroundStyle(secondaryColor.opacity(0.85))
+                } else {
+                    Text(qiblaManager.liveMoonPosition.relativeSunPositionText)
+                        .font(.caption2)
+                        .foregroundStyle(secondaryColor.opacity(0.8))
+                }
+            }
+
+            Spacer()
+
+            Text("Faites glisser l'écran pour affiner l'alignement sur les crêtes")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, DesignSystem.Spacing.normal)
+        .padding(.vertical, DesignSystem.Spacing.small)
+        .background(.thinMaterial)
+        .clipShape(.rect(cornerRadius: DesignSystem.Layout.cornerRadius))
+        .padding(.horizontal)
+        .padding(.bottom, 10)
+    }
+
+    // MARK: - Projection Perspective Optique Réelle (Pinhole Lens Model)
     private func projectX(azimuth: Double, yaw: Double, screenWidth: CGFloat) -> CGFloat {
         var diff = azimuth - yaw
         while diff > 180.0 { diff -= 360.0 }
@@ -444,5 +603,20 @@ struct ARLandscapeObservationView: View {
 
     private func isPointInScreen(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> Bool {
         x >= -40 && x <= width + 40 && y >= -40 && y <= height + 40
+    }
+
+    private func cardinalLabel(for angle: Double) -> String {
+        let normalized = (angle.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
+        switch Int(normalized.rounded()) {
+        case 0, 360: return "N"
+        case 45: return "NE"
+        case 90: return "E"
+        case 135: return "SE"
+        case 180: return "S"
+        case 225: return "SO"
+        case 270: return "O"
+        case 315: return "NO"
+        default: return ""
+        }
     }
 }

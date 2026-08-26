@@ -51,6 +51,32 @@ nonisolated struct SkylinePoint: Identifiable, Sendable, Equatable {
     }
 }
 
+/// Sommet ou crête remarquable identifié dans le panorama façon PeakFinder
+nonisolated struct MountainPeak: Identifiable, Sendable, Equatable {
+    let id: UUID
+    let name: String
+    let azimuthDegrees: Double
+    let elevationAngleDegrees: Double
+    let distanceKm: Double
+    let altitudeMeters: Double
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        azimuthDegrees: Double,
+        elevationAngleDegrees: Double,
+        distanceKm: Double,
+        altitudeMeters: Double
+    ) {
+        self.id = id
+        self.name = name
+        self.azimuthDegrees = azimuthDegrees
+        self.elevationAngleDegrees = elevationAngleDegrees
+        self.distanceKm = distanceKm
+        self.altitudeMeters = altitudeMeters
+    }
+}
+
 /// Position instantanée en direct de la Lune et du Soleil pour le repérage diurne et la RA
 nonisolated struct LiveMoonPosition: Sendable, Equatable {
     var azimuthDegrees: Double = 0.0
@@ -61,6 +87,7 @@ nonisolated struct LiveMoonPosition: Sendable, Equatable {
     var illuminatedFraction: Double = 0.0
     var trajectory: [MoonTrajectoryPoint] = []
     var skyline: [SkylinePoint] = []
+    var peaks: [MountainPeak] = []
 
     var isAboveHorizon: Bool {
         altitudeDegrees > 0.0
