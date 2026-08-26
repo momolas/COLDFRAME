@@ -419,22 +419,30 @@ struct ARLandscapeObservationView: View {
         }
     }
 
-    // MARK: - Fonctions de Projection Mathématique 3D -> 2D
+    // MARK: - Fonctions de Projection Perspective Optique Réelle (Pinhole Lens Model)
     private func projectX(azimuth: Double, yaw: Double, screenWidth: CGFloat) -> CGFloat {
         var diff = azimuth - yaw
         while diff > 180.0 { diff -= 360.0 }
         while diff < -180.0 { diff += 360.0 }
-        let normalized = diff / fovHorizontal
-        return (screenWidth / 2.0) + CGFloat(normalized) * screenWidth
+        guard abs(diff) < 85.0 else { return diff > 0 ? screenWidth + 500 : -500 }
+
+        let diffRad = diff * .pi / 180.0
+        let halfFovRad = (fovHorizontal / 2.0) * .pi / 180.0
+        let normalized = tan(diffRad) / tan(halfFovRad)
+        return (screenWidth / 2.0) + CGFloat(normalized) * (screenWidth / 2.0)
     }
 
     private func projectY(altitude: Double, pitch: Double, screenHeight: CGFloat) -> CGFloat {
         let diff = altitude - pitch
-        let normalized = diff / fovVertical
-        return (screenHeight / 2.0) - CGFloat(normalized) * screenHeight
+        guard abs(diff) < 85.0 else { return diff > 0 ? -500 : screenHeight + 500 }
+
+        let diffRad = diff * .pi / 180.0
+        let halfFovRad = (fovVertical / 2.0) * .pi / 180.0
+        let normalized = tan(diffRad) / tan(halfFovRad)
+        return (screenHeight / 2.0) - CGFloat(normalized) * (screenHeight / 2.0)
     }
 
     private func isPointInScreen(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> Bool {
-        x >= -30 && x <= width + 30 && y >= -30 && y <= height + 30
+        x >= -40 && x <= width + 40 && y >= -40 && y <= height + 40
     }
 }

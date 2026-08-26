@@ -12,9 +12,9 @@ import Observation
 final class MotionManager {
     private let motionManager = CMMotionManager()
 
-    var pitchDegrees: Double = 0.0
-    var rollDegrees: Double = 0.0
-    var yawDegrees: Double = 0.0 // 0 = Nord, 90 = Est, 180 = Sud, 270 = Ouest
+    var pitchDegrees: Double = 0.0 // Élévation verticale de l'axe optique caméra (-90° à +90°)
+    var rollDegrees: Double = 0.0  // Roulis de l'écran autour de l'axe optique
+    var yawDegrees: Double = 0.0   // Azimut boussole réel de visée (0° = Nord, 90° = Est, 180° = Sud, 270° = Ouest)
     var isTracking: Bool = false
 
     var isAvailable: Bool {
@@ -32,23 +32,33 @@ final class MotionManager {
         motionManager.startDeviceMotionUpdates(using: frame, to: .main) { [weak self] motion, _ in
             guard let self = self, let motion = motion else { return }
 
-            // En mode paysage (Landscape Left / Right) :
-            // pitch = inclinaison haut/bas de la caméra
-            // roll = inclinaison latérale
-            // yaw = azimut pointé par la caméra
-            let attitude = motion.attitude
+            let matrix = motion.attitude.rotationMatrix
 
-            // Conversion en degrés
-            let pitch = attitude.pitch * 180.0 / .pi
-            let roll = attitude.roll * 180.0 / .pi
-            
-            // Yaw normalisé en cap 0..360°
-            let yawRad = attitude.yaw
-            let yawDeg = (-yawRad * 180.0 / .pi + 360.0).truncatingRemainder(dividingBy: 360.0)
+            // Dans CoreMotion avec xTrueNorthZVertical :
+            // Monde : +X = Nord, +Y = Est, +Z = Haut (Zénith)
+            // Appareil : La caméra arrière pointe selon le vecteur (0, 0, -1)
+            // Vecteur de visée caméra dans l'espace monde :
+            let vx = -matrix.m13 // Composante Nord
+            let vy = -matrix.m23 // Composante Est
+            let vz = -matrix.m33 // Composante Verticale (Zénith)
+
+            // 1. Calcul de l'élévation optique réelle (Pitch) : angle avec le plan horizontal
+            let clampedVz = max(-1.0, min(1.0, vz))
+            let pitchRad = asin(clampedVz)
+            let pitch = pitchRad * 180.0 / .pi
+
+            // 2. Calcul du cap boussole réel de visée (Yaw) : angle dans le plan horizontal (0°=N, 90°=E)
+            let yawRad = atan2(vy, vx)
+            var yaw = yawRad * 180.0 / .pi
+            if yaw < 0 { yaw += 360.0 }
+            yaw = yaw.truncatingRemainder(dividingBy: 360.0)
+
+            // 3. Roulis autour de l'axe de visée (pour compenser l'inclinaison de l'appareil)
+            let roll = motion.attitude.roll * 180.0 / .pi
 
             self.pitchDegrees = pitch
             self.rollDegrees = roll
-            self.yawDegrees = yawDeg
+            self.yawDegrees = yaw
         }
 
         isTracking = true

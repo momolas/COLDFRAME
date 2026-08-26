@@ -252,11 +252,11 @@ actor ElevationService {
         let observerCoord = observerLocation.coordinate
         let observerAlt = observerLocation.altitude > -100 ? observerLocation.altitude : 0.0
 
-        // Échantillonnage de 72 directions d'azimut (tous les 5° de 0° à 355°)
-        // Pour chaque azimut, on vérifie 2 distances de crêtes (6 km et 18 km) -> 144 points
+        // Échantillonnage de 48 directions d'azimut (tous les 7.5° de 0° à 352.5°)
+        // Pour chaque azimut, on vérifie 4 distances progressives (2.5 km, 7 km, 16 km et 30 km) -> 192 points
         var sampleCoordinates: [(azimuth: Double, distanceKm: Double, coord: CLLocationCoordinate2D)] = []
-        let azimuths = stride(from: 0.0, to: 360.0, by: 5.0)
-        let distances = [6.0, 18.0]
+        let azimuths = stride(from: 0.0, to: 360.0, by: 7.5)
+        let distances = [2.5, 7.0, 16.0, 30.0]
 
         for az in azimuths {
             for dist in distances {
