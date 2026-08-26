@@ -28,7 +28,7 @@ struct ContentView: View {
                     Text("Veuillez autoriser l'accès à la localisation dans les paramètres pour utiliser la boussole Qibla.")
                         .font(.body)
                         .multilineTextAlignment(.center)
-                        .foregroundStyle(.gray)
+                        .foregroundStyle(.secondary)
                         .padding(.horizontal)
 
                     Button("Ouvrir les Réglages", action: openSettings)

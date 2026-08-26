@@ -104,13 +104,13 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
 
     // MARK: - CoreLocation Delegate
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        Task { @MainActor in
+        MainActor.assumeIsolated {
             self.authorizationStatus = manager.authorizationStatus
         }
     }
 
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
-        Task { @MainActor in
+        MainActor.assumeIsolated {
             // Utiliser le Vrai Nord (True Heading) si disponible, sinon le Magnétique
             let h = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
             self.heading = h
@@ -120,7 +120,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
 
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
-        Task { @MainActor in
+        MainActor.assumeIsolated {
             self.userLocation = location.coordinate
 
             // 1. Calcul Qibla (Formule Mathématique Orthodromique)
@@ -147,8 +147,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
             }()
 
             if shouldUpdate {
-                await self.calculatePrayersLocally(for: location)
-                await self.updateIslamicDate(location: location)
+                Task {
+                    await self.calculatePrayersLocally(for: location)
+                    await self.updateIslamicDate(location: location)
+                }
             }
         }
     }

@@ -33,7 +33,7 @@ struct CompassDial: View {
             }
             
             // Labels (N, E, S, O et degrés) - On les garde en SwiftUI pour le rendu texte optimal
-            ForEach(0..<12) { i in
+            ForEach(0..<12, id: \.self) { i in
                 let degree = i * 30
                 LabelView(degree: degree)
                     .offset(y: -105)

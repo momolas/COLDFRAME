@@ -38,17 +38,17 @@ class NotificationManager {
 		// Utilisation du son par défaut car 'adhan.mp3' est manquant
 		content.sound = .default
 		
-		let timeParts = prayer.time.split(separator: ":").compactMap { Int($0) }
-		guard timeParts.count == 2 else { return }
-		
-		var dateComponents = DateComponents()
-		dateComponents.hour = timeParts[0]
-		dateComponents.minute = timeParts[1]
-		
+		let dateComponents = Calendar.current.dateComponents([.hour, .minute], from: prayer.date)
 		let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
 		let request = UNNotificationRequest(identifier: prayer.name, content: content, trigger: trigger)
 		
-		UNUserNotificationCenter.current().add(request)
+		Task {
+			do {
+				try await UNUserNotificationCenter.current().add(request)
+			} catch {
+				self.logger.error("Erreur lors de la programmation de la notification: \(error.localizedDescription)")
+			}
+		}
 	}
 	
 	func cancelAllNotifications() {

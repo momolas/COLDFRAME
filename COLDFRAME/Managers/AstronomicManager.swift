@@ -9,7 +9,7 @@ import Foundation
 import CoreLocation
 import SwiftAA
 
-class AstronomicManager {
+enum AstronomicManager {
     
     @concurrent
     static func getSolarData(for location: CLLocation, date: Date = Date()) async -> [PrayerTime] {

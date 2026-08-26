@@ -86,6 +86,8 @@ struct HilalObservationView: View {
                         }
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Détails du profil altimétrique 3D")
+                    .accessibilityValue(isTerrainExpanded ? "Déplié" : "Replié")
 
                     if isTerrainExpanded {
                         ElevationProfileView(profile: profile)
