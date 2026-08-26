@@ -213,9 +213,11 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
         MainActor.assumeIsolated {
             self.headingAccuracy = newHeading.headingAccuracy
-            guard newHeading.headingAccuracy >= 0 else { return }
+            
+            let rawMag = newHeading.magneticHeading
+            guard rawMag >= 0 else { return }
 
-            self.magneticHeading = (newHeading.magneticHeading.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
+            self.magneticHeading = (rawMag.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
             if newHeading.trueHeading >= 0 {
                 self.trueHeading = (newHeading.trueHeading.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
             }
