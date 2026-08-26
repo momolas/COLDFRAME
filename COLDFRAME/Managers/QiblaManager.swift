@@ -16,6 +16,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
 
     var heading: Double = 0.0
+    var headingAccuracy: Double = -1.0
     var qiblaAngle: Double = 0.0
     var isAligned: Bool = false
     var userLocation: CLLocationCoordinate2D?
@@ -133,15 +134,19 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
             obsData.isFetchingWeather = true
             self.hilalObservation = obsData
 
+            let targetAz = obsData.azimuthDegrees
+            let targetMoonAlt = obsData.moonAltitudeDegrees
+            let targetObsTime = obsData.bestObservationTime ?? maghrib ?? Date()
+
             // Fetch météo, profil d'obstruction et crêtes 360° en parallèle
             async let terrainTask = ElevationService.shared.fetchTerrainProfile(
                 from: loc,
-                azimuthDegrees: obsData.azimuthDegrees,
-                moonAltitudeDegrees: obsData.moonAltitudeDegrees
+                azimuthDegrees: targetAz,
+                moonAltitudeDegrees: targetMoonAlt
             )
             async let weatherTask = WeatherService.shared.fetchObservationWeather(
                 for: loc.coordinate,
-                targetTime: obsData.bestObservationTime ?? maghrib ?? Date()
+                targetTime: targetObsTime
             )
             async let skylineTask = ElevationService.shared.fetchPanoramicSkyline(from: loc)
 
@@ -194,11 +199,19 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         }
     }
 
+    nonisolated func locationManagerShouldDisplayHeadingCalibration(_ manager: CLLocationManager) -> Bool {
+        // Autoriser iOS à afficher la modale d'étalonnage en 8 si le capteur est perturbé
+        return true
+    }
+
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
         MainActor.assumeIsolated {
-            // Utiliser le Vrai Nord (True Heading) si disponible, sinon le Magnétique
+            self.headingAccuracy = newHeading.headingAccuracy
+            guard newHeading.headingAccuracy >= 0 else { return }
+
+            // Préférer le Vrai Nord géographique (True North), sinon le Nord Magnétique
             let h = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
-            self.heading = h
+            self.heading = (h.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
             self.checkAlignment()
         }
     }
