@@ -35,8 +35,8 @@ struct HilalObservationView: View {
                         .foregroundStyle(.white.opacity(0.95))
                         .fixedSize(horizontal: false, vertical: true)
 
-                    if data.yallopZone != "F" && data.visibility != .notObservationDay {
-                        Text("Critère Yallop : Zone \(data.yallopZone) (q = \(data.yallopQValue.formatted(.number.precision(.fractionLength(2)))))")
+                    if data.odehZone != "D" && data.visibility != .notObservationDay {
+                        Text("Critère Odeh (2004) : Zone \(data.odehZone) (V = \(data.odehVValue.formatted(.number.precision(.fractionLength(2)))))")
                             .font(.caption2)
                             .foregroundStyle(.cyan.opacity(0.9))
                     }
@@ -187,6 +187,24 @@ private struct ScientificDetailsGrid: View {
 
     var body: some View {
         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
+            GridRow {
+                Text("Odeh V (2004):")
+                    .font(.caption2)
+                    .foregroundStyle(.cyan)
+                Text("\(data.odehVValue.formatted(.number.precision(.fractionLength(2)))) (Zone \(data.odehZone))")
+                    .font(.caption2)
+                    .bold()
+                    .foregroundStyle(.cyan)
+
+                Text("Yallop q (1997):")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text("\(data.yallopQValue.formatted(.number.precision(.fractionLength(2)))) (Zone \(data.yallopZone))")
+                    .font(.caption2)
+                    .bold()
+                    .foregroundStyle(.white)
+            }
+
             GridRow {
                 Text("Arc of Vision (ARCV):")
                     .font(.caption2)

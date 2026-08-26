@@ -61,7 +61,9 @@ nonisolated struct HilalObservationData: Equatable, Sendable {
     var elongationDegrees: Double = 0.0
     var observerAltitudeMeters: Double = 0.0
 
-    // Paramètres scientifiques Yallop & Odeh
+    // Paramètres scientifiques Odeh (2004) & Yallop (1997)
+    var odehVValue: Double = 0.0
+    var odehZone: String = "D"
     var yallopQValue: Double = 0.0
     var yallopZone: String = "F"
     var arcOfVisionDegrees: Double = 0.0          // ARCV (différence d'altitude Lune - Soleil)

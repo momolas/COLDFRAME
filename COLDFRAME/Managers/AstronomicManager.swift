@@ -167,33 +167,37 @@ enum AstronomicManager {
         let lastNewMoon = evalMoon.time(of: .newMoon, forward: false)
         let ageInHours = (evalMoon.julianDay.value - lastNewMoon.value) * 24.0
 
-        // 3. Modèle scientifique de visibilité Yallop (valeur q)
-        // Formule de référence Yallop (1997) :
-        // q = (ARCV - (11.8371 - 6.3226 * W + 0.7319 * W^2 - 0.1018 * W^3)) / 10.0
+        // 3. Modèle scientifique de visibilité Odeh (2004) & Yallop (1997)
+        // Référence : Mohammad Shaukat Odeh (2004, Experimental Astronomy 18: 39-64)
+        // V = ARCV - (11.8371 - 6.3226 * W + 0.7319 * W^2 - 0.1018 * W^3)
         let w = crescentWidth
-        let yallopPolynomial = 11.8371 - (6.3226 * w) + (0.7319 * pow(w, 2)) - (0.1018 * pow(w, 3))
-        let qValue = (arcOfVision - yallopPolynomial) / 10.0
+        let polynomialThreshold = 11.8371 - (6.3226 * w) + (0.7319 * pow(w, 2)) - (0.1018 * pow(w, 3))
+        let vValue = arcOfVision - polynomialThreshold
+        let qValue = vValue / 10.0
 
+        let odehZone: String
         let yallopZone: String
         let baseVisibility: HilalVisibility
 
-        // Limite de Danjon : en-dessous de 7° d'élongation, la Lune est invisible à cause de la rugosité de la surface lunaire
-        if elongation < 7.0 || moonAltitude <= 0.0 || moonLagMinutes <= 0.0 || ageInHours < 12.0 {
+        // Limite de Danjon affinée par Odeh (6.4° d'élongation)
+        if elongation < 6.4 || moonAltitude <= 0.0 || moonLagMinutes <= 0.0 {
+            odehZone = "D"
             yallopZone = "F"
             baseVisibility = .impossible
-        } else if qValue > 0.216 {
+        } else if vValue >= 5.65 {
+            odehZone = "A"
             yallopZone = "A"
             baseVisibility = .easilyVisibleNakedEye
-        } else if qValue > -0.060 {
-            yallopZone = "B"
+        } else if vValue >= 2.00 {
+            odehZone = "B"
+            yallopZone = (qValue > -0.060) ? "B" : "C"
             baseVisibility = .visibleNakedEyePerfectConditions
-        } else if qValue > -0.160 {
-            yallopZone = "C"
-            baseVisibility = .opticalAidThenNakedEye
-        } else if qValue > -0.232 {
-            yallopZone = "D"
+        } else if vValue >= -0.96 {
+            odehZone = "C"
+            yallopZone = (qValue > -0.232) ? "D" : "E"
             baseVisibility = .opticalAidOnly
         } else {
+            odehZone = "D"
             yallopZone = "E"
             baseVisibility = .impossible
         }
@@ -205,6 +209,8 @@ enum AstronomicManager {
             moonAgeHours: ageInHours,
             elongationDegrees: elongation,
             observerAltitudeMeters: observerAlt,
+            odehVValue: vValue,
+            odehZone: odehZone,
             yallopQValue: qValue,
             yallopZone: yallopZone,
             arcOfVisionDegrees: arcOfVision,
