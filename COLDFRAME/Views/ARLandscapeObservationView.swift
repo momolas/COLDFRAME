@@ -60,12 +60,9 @@ struct ARLandscapeObservationView: View {
         qiblaManager.isNightVisionMode ? Color.red.opacity(0.9) : Color.orange.opacity(0.9)
     }
 
-    // Cap boussole de base : priorité au cap caméra optique 3D de MotionManager
+    // Cap boussole de visée : magnétomètre matériel étalonné de l'iPhone
     private var baseCompassYaw: Double {
-        if motionManager.isTracking {
-            return motionManager.yawDegrees
-        }
-        return qiblaManager.heading
+        qiblaManager.heading
     }
 
     var body: some View {
@@ -253,10 +250,12 @@ struct ARLandscapeObservationView: View {
             }
         }
         .onAppear {
+            qiblaManager.setLandscapeOrientation(true)
             motionManager.startTracking()
             qiblaManager.refreshSkylineIfNeeded()
         }
         .onDisappear {
+            qiblaManager.setLandscapeOrientation(false)
             motionManager.stopTracking()
         }
     }

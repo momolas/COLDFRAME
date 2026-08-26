@@ -72,6 +72,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         self.startPeriodicUpdates()
     }
 
+    func setLandscapeOrientation(_ isLandscape: Bool) {
+        locationManager.headingOrientation = isLandscape ? .landscapeLeft : .portrait
+    }
+
     private var periodicTask: Task<Void, Never>?
 
     private func startPeriodicUpdates() {

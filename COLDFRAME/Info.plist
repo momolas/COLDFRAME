@@ -4,9 +4,5 @@
 <dict>
 	<key>MKDirectionsApplicationSupportedModes</key>
 	<array/>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Cette application utilise votre localisation pour calculer la Qibla et les horaires de prière.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>La caméra est utilisée pour afficher l'horizon en réalité augmentée et repérer la Lune et les reliefs.</string>
 </dict>
 </plist>

@@ -19,8 +19,7 @@ final class MotionManager {
     var isTracking: Bool = false
 
     var isAvailable: Bool {
-        let frames = CMMotionManager.availableAttitudeReferenceFrames()
-        return frames.contains(.xTrueNorthZVertical) || frames.contains(.xMagneticNorthZVertical)
+        motionManager.isDeviceMotionAvailable
     }
 
     @ObservationIgnored private var isInitialized: Bool = false
@@ -33,52 +32,20 @@ final class MotionManager {
         isInitialized = false
         motionManager.deviceMotionUpdateInterval = 1.0 / 60.0 // 60 Hz
 
-        let availableFrames = CMMotionManager.availableAttitudeReferenceFrames()
-        let frame: CMAttitudeReferenceFrame
-        if availableFrames.contains(.xTrueNorthZVertical) {
-            frame = .xTrueNorthZVertical
-        } else if availableFrames.contains(.xMagneticNorthZVertical) {
-            frame = .xMagneticNorthZVertical
-        } else if availableFrames.contains(.xArbitraryCorrectedZVertical) {
-            frame = .xArbitraryCorrectedZVertical
-        } else {
-            frame = .xArbitraryZVertical
-        }
-
-        motionManager.startDeviceMotionUpdates(using: frame, to: .main) { [weak self] motion, _ in
+        motionManager.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
             guard let self = self, let motion = motion else { return }
 
             let matrix = motion.attitude.rotationMatrix
 
-            // 1. Élévation optique (Pitch) : angle avec le plan horizontal
+            // Élévation optique (Pitch) : angle avec le plan horizontal (-90° à +90°)
             let clampedUp = max(-1.0, min(1.0, -matrix.m33))
             let rawPitch = asin(clampedUp) * 180.0 / .pi
 
-            // 2. Cap boussole optique réel (Yaw 360° invariant sans gimbal lock) :
-            // Dans le repère CoreMotion (+X = Nord, +Y = Ouest, +Z = Zénith) :
-            // Vecteur visée caméra (-Z appareil) = (-m13, -m23, -m33)
-            // Composante Nord = -m13, Composante Est = +m23 (car Est = -Ouest)
-            let northComp = -matrix.m13
-            let eastComp = matrix.m23
-            let yawRad = atan2(eastComp, northComp)
-            var rawYaw = yawRad * 180.0 / .pi
-            if rawYaw < 0 { rawYaw += 360.0 }
-            rawYaw = rawYaw.truncatingRemainder(dividingBy: 360.0)
-
-            // 3. Filtrage passe-bas continu
             if !self.isInitialized {
                 self.pitchDegrees = rawPitch
-                self.yawDegrees = rawYaw
                 self.isInitialized = true
             } else {
                 self.pitchDegrees += (rawPitch - self.pitchDegrees) * self.smoothingFactor
-
-                var diffYaw = rawYaw - self.yawDegrees
-                while diffYaw > 180.0 { diffYaw -= 360.0 }
-                while diffYaw < -180.0 { diffYaw += 360.0 }
-                var smoothedYaw = self.yawDegrees + diffYaw * self.smoothingFactor
-                if smoothedYaw < 0 { smoothedYaw += 360.0 }
-                self.yawDegrees = smoothedYaw.truncatingRemainder(dividingBy: 360.0)
             }
         }
 
