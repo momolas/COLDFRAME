@@ -25,10 +25,7 @@ struct ElevationProfileView: View {
             }
 
             // Canvas de rendu de la coupe géométrique
-            GeometryReader { geometry in
-                let width = geometry.size.width
-                let height = geometry.size.height
-
+            GeometryReader { _ in
                 let minAlt = min(
                     profile.observerAltitudeMeters,
                     profile.points.map(\.elevationMeters).min() ?? 0.0

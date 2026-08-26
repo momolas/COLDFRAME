@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-enum HilalVisibility: String, Equatable, Sendable {
+nonisolated enum HilalVisibility: String, Equatable, Sendable {
     case notObservationDay = "Pas de recherche aujourd'hui"
     case impossible = "Observation impossible (Lune trop jeune)"
     case obstructedByTerrain = "Observation masquée par le relief"
@@ -33,7 +33,7 @@ enum HilalVisibility: String, Equatable, Sendable {
     }
 }
 
-struct HilalObservationData: Equatable, Sendable {
+nonisolated struct HilalObservationData: Equatable, Sendable {
     var visibility: HilalVisibility = .notObservationDay
     var azimuthDegrees: Double = 0.0
     var moonAltitudeDegrees: Double = 0.0

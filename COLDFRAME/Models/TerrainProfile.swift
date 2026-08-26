@@ -7,7 +7,7 @@ import Foundation
 import CoreLocation
 
 /// Représente un point d'échantillonnage altimétrique le long de la ligne de visée
-struct ElevationPoint: Identifiable, Sendable, Equatable {
+nonisolated struct ElevationPoint: Identifiable, Sendable, Equatable {
     let id: UUID
     let distanceKm: Double
     let latitude: Double
@@ -33,7 +33,7 @@ struct ElevationPoint: Identifiable, Sendable, Equatable {
 }
 
 /// Profil altimétrique complet dans la direction d'observation
-struct TerrainProfile: Sendable, Equatable {
+nonisolated struct TerrainProfile: Sendable, Equatable {
     let observerAltitudeMeters: Double
     let points: [ElevationPoint]
     let maxObstructionAngle: Double
