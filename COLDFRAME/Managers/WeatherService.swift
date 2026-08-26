@@ -28,7 +28,7 @@ actor WeatherService {
         let latStr = location.latitude.formatted(.number.precision(.fractionLength(4)).locale(Locale(identifier: "en_US")))
         let lonStr = location.longitude.formatted(.number.precision(.fractionLength(4)).locale(Locale(identifier: "en_US")))
 
-        let urlString = "https://api.open-meteo.com/v1/forecast?latitude=\(latStr)&longitude=\(lonStr)&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,visibility,relative_humidity_2m,temperature_2m&timezone=auto&forecast_days=2"
+        let urlString = "https://api.open-meteo.com/v1/forecast?latitude=\(latStr)&longitude=\(lonStr)&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,visibility,relative_humidity_2m,temperature_2m&timezone=UTC&forecast_days=2"
 
         guard let url = URL(string: urlString) else { return nil }
 

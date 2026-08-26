@@ -68,6 +68,40 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
                 await self.updateIslamicDate()
             }
         }
+
+        self.startPeriodicUpdates()
+    }
+
+    private var periodicTask: Task<Void, Never>?
+
+    private func startPeriodicUpdates() {
+        periodicTask?.cancel()
+        periodicTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(30))
+                guard let self = self else { break }
+                self.updateNextPrayer()
+
+                // Si la date a changé (passage de minuit), recalculer les horaires
+                if let loc = self.lastCalculationLocation,
+                   let lastDate = self.lastCalculationDate,
+                   !Calendar.current.isDate(lastDate, inSameDayAs: Date()) {
+                    await self.calculatePrayersLocally(for: loc)
+                    await self.updateIslamicDate(location: loc)
+                } else if let loc = self.lastCalculationLocation {
+                    // Mettre à jour la position instantanée de la Lune
+                    let liveMoon = await AstronomicManager.getLiveMoonPosition(for: Date(), location: loc)
+                    var currentLive = self.liveMoonPosition
+                    currentLive.azimuthDegrees = liveMoon.azimuthDegrees
+                    currentLive.altitudeDegrees = liveMoon.altitudeDegrees
+                    currentLive.sunAzimuthDegrees = liveMoon.sunAzimuthDegrees
+                    currentLive.sunAltitudeDegrees = liveMoon.sunAltitudeDegrees
+                    currentLive.elongationDegrees = liveMoon.elongationDegrees
+                    currentLive.illuminatedFraction = liveMoon.illuminatedFraction
+                    self.liveMoonPosition = currentLive
+                }
+            }
+        }
     }
 
     // MARK: - Calendrier Islamique & Hilal
@@ -143,6 +177,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         MainActor.assumeIsolated {
             self.authorizationStatus = manager.authorizationStatus
+            if manager.authorizationStatus == .authorizedWhenInUse || manager.authorizationStatus == .authorizedAlways {
+                manager.startUpdatingLocation()
+                manager.startUpdatingHeading()
+            }
         }
     }
 
