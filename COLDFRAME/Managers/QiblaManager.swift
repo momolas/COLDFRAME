@@ -31,6 +31,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     var hilalVisibility: HilalVisibility {
         hilalObservation.visibility
     }
+    var liveMoonPosition: LiveMoonPosition = LiveMoonPosition()
 
     @ObservationIgnored private var lastCalculationDate: Date?
     @ObservationIgnored private var lastCalculationLocation: CLLocation?
@@ -83,6 +84,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         var obsData = await AstronomicManager.getHilalObservation(for: Date(), maghribDate: maghrib, location: activeLocation)
 
         if let loc = activeLocation {
+            self.liveMoonPosition = await AstronomicManager.getLiveMoonPosition(for: Date(), location: loc)
             obsData.isAnalyzingTerrain = true
             self.hilalObservation = obsData
 

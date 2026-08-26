@@ -41,6 +41,27 @@ nonisolated struct TerrainProfile: Sendable, Equatable {
     let isObstructed: Bool
     let moonAltitudeDegrees: Double
     let horizonDipDegrees: Double
+    let dataSource: String
+
+    init(
+        observerAltitudeMeters: Double,
+        points: [ElevationPoint],
+        maxObstructionAngle: Double,
+        maxObstructionDistanceKm: Double,
+        isObstructed: Bool,
+        moonAltitudeDegrees: Double,
+        horizonDipDegrees: Double,
+        dataSource: String = "Copernicus DEM (30m)"
+    ) {
+        self.observerAltitudeMeters = observerAltitudeMeters
+        self.points = points
+        self.maxObstructionAngle = maxObstructionAngle
+        self.maxObstructionDistanceKm = maxObstructionDistanceKm
+        self.isObstructed = isObstructed
+        self.moonAltitudeDegrees = moonAltitudeDegrees
+        self.horizonDipDegrees = horizonDipDegrees
+        self.dataSource = dataSource
+    }
 
     var summaryText: String {
         if isObstructed {

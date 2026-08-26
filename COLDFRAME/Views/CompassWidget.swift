@@ -52,9 +52,17 @@ struct CompassWidget: View {
                 .offset(y: -55)
                 .zIndex(2)
             
-            // Cadran et indicateur Qibla qui tournent
+            // Cadran et indicateurs Qibla et Lune qui tournent
             ZStack {
                 CompassDial()
+                
+                if qiblaManager.liveMoonPosition.azimuthDegrees > 0 {
+                    MoonPointer(
+                        azimuth: qiblaManager.liveMoonPosition.azimuthDegrees,
+                        altitude: qiblaManager.liveMoonPosition.altitudeDegrees,
+                        isAboveHorizon: qiblaManager.liveMoonPosition.isAboveHorizon
+                    )
+                }
                 
                 QiblaPointer(isAligned: qiblaManager.isAligned)
                     .rotationEffect(.degrees(safeQiblaAngle))

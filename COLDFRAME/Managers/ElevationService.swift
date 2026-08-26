@@ -6,8 +6,9 @@
 import Foundation
 import CoreLocation
 
-/// Service responsable de la récupération du modèle numérique de terrain (MNT)
-/// et du calcul de l'obstruction d'horizon le long de la ligne de visée.
+/// Service hybride responsable de la récupération du modèle numérique de terrain (MNT) :
+/// - Utilise le LiDAR HD National IGN (résolution 1m) pour la France
+/// - Utilise le modèle mondial Copernicus DEM GLO-30 (résolution 30m) pour le reste du monde avec bascule automatique.
 actor ElevationService {
     static let shared = ElevationService()
 
@@ -16,8 +17,15 @@ actor ElevationService {
     // Rayon effectif avec réfraction atmosphérique standard (4/3 R)
     private let effectiveEarthRadiusMeters: Double = 8494667.0
 
-    struct OpenMeteoElevationResponse: Decodable, Sendable {
+    private struct OpenMeteoElevationResponse: Decodable, Sendable {
         let elevation: [Double]
+    }
+
+    private struct IGNElevationResponse: Decodable, Sendable {
+        struct Point: Decodable, Sendable {
+            let z: Double
+        }
+        let elevations: [Point]
     }
 
     /// Récupère et calcule le profil altimétrique face à l'azimut donné
@@ -38,7 +46,132 @@ actor ElevationService {
             sampleCoordinates.append((distKm, coord))
         }
 
-        // 2. Préparation de la requête vers Open-Meteo Elevation API (avec locale POSIX pour forcer le point décimal)
+        // 2. Routage intelligent : Tenter le LiDAR HD IGN si en France, sinon Copernicus DEM
+        var elevations: [Double]?
+        var activeDataSource = "Copernicus DEM (30m)"
+
+        if isInFrenchTerritory(observerCoord) {
+            if let ignElevations = await fetchIGNLiDARProfile(sampleCoordinates: sampleCoordinates) {
+                elevations = ignElevations
+                activeDataSource = "IGN LiDAR HD (1m)"
+            }
+        }
+
+        // Si hors France ou si l'IGN a échoué (fallback)
+        if elevations == nil {
+            if let openMeteoElevations = await fetchOpenMeteoProfile(sampleCoordinates: sampleCoordinates) {
+                elevations = openMeteoElevations
+                activeDataSource = "Copernicus DEM (30m)"
+            }
+        }
+
+        guard let elevationValues = elevations, elevationValues.count == sampleCoordinates.count else {
+            return nil
+        }
+
+        // 3. Altitude de l'observateur (utiliser l'altitude GPS si valide > -100m, sinon l'altitude MNT au sol)
+        let observerGroundAlt = elevationValues[0]
+        let observerAlt = observerLocation.altitude > -100 ? observerLocation.altitude : observerGroundAlt
+        
+        // Dépression d'horizon causée par l'altitude (en degrés)
+        let horizonDip = 0.0293 * sqrt(max(0.0, observerAlt))
+
+        // 4. Calcul de l'angle d'élévation pour chaque point avec courbure et réfraction
+        var elevationPoints: [ElevationPoint] = []
+        var maxAngle: Double = -90.0
+        var maxAngleDist: Double = 0.0
+
+        for i in 0..<sampleCoordinates.count {
+            let distKm = sampleCoordinates[i].distanceKm
+            let coord = sampleCoordinates[i].coord
+            let elev = elevationValues[i]
+
+            if distKm == 0.0 {
+                elevationPoints.append(
+                    ElevationPoint(
+                        distanceKm: 0.0,
+                        latitude: coord.latitude,
+                        longitude: coord.longitude,
+                        elevationMeters: elev,
+                        angleDegrees: 0.0
+                    )
+                )
+                continue
+            }
+
+            let distMeters = distKm * 1000.0
+            // Correction courbure + réfraction atmosphérique : d^2 / (2 * R_eff)
+            let curvatureDrop = (distMeters * distMeters) / (2.0 * effectiveEarthRadiusMeters)
+            let deltaHeightApparent = (elev - observerAlt) - curvatureDrop
+            
+            // Angle angulaire depuis l'observateur
+            let angleRad = atan2(deltaHeightApparent, distMeters)
+            let angleDeg = angleRad * 180.0 / .pi
+
+            if angleDeg > maxAngle {
+                maxAngle = angleDeg
+                maxAngleDist = distKm
+            }
+
+            elevationPoints.append(
+                ElevationPoint(
+                    distanceKm: distKm,
+                    latitude: coord.latitude,
+                    longitude: coord.longitude,
+                    elevationMeters: elev,
+                    angleDegrees: angleDeg
+                )
+            )
+        }
+
+        let finalMaxObstructionAngle = max(0.0, maxAngle)
+        let isObstructed = finalMaxObstructionAngle >= moonAltitudeDegrees
+
+        return TerrainProfile(
+            observerAltitudeMeters: observerAlt,
+            points: elevationPoints,
+            maxObstructionAngle: finalMaxObstructionAngle,
+            maxObstructionDistanceKm: maxAngleDist,
+            isObstructed: isObstructed,
+            moonAltitudeDegrees: moonAltitudeDegrees,
+            horizonDipDegrees: horizonDip,
+            dataSource: activeDataSource
+        )
+    }
+
+    // MARK: - API IGN Géoplateforme (LiDAR HD 1m)
+    private func fetchIGNLiDARProfile(sampleCoordinates: [(distanceKm: Double, coord: CLLocationCoordinate2D)]) async -> [Double]? {
+        let posixLocale = Locale(identifier: "en_US_POSIX")
+        let lons = sampleCoordinates.map {
+            $0.coord.longitude.formatted(.number.locale(posixLocale).precision(.fractionLength(5)).grouping(.never))
+        }.joined(separator: "|")
+        let lats = sampleCoordinates.map {
+            $0.coord.latitude.formatted(.number.locale(posixLocale).precision(.fractionLength(5)).grouping(.never))
+        }.joined(separator: "|")
+
+        guard let url = URL(string: "https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json?lon=\(lons)&lat=\(lats)&resource=ign_rge_alti_wld") else {
+            return nil
+        }
+
+        do {
+            var request = URLRequest(url: url)
+            request.timeoutInterval = 6.0
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                return nil
+            }
+
+            let decoded = try JSONDecoder().decode(IGNElevationResponse.self, from: data)
+            guard decoded.elevations.count == sampleCoordinates.count else { return nil }
+            return decoded.elevations.map(\.z)
+        } catch {
+            return nil
+        }
+    }
+
+    // MARK: - API Mondiale Open-Meteo (Copernicus DEM 30m)
+    private func fetchOpenMeteoProfile(sampleCoordinates: [(distanceKm: Double, coord: CLLocationCoordinate2D)]) async -> [Double]? {
         let posixLocale = Locale(identifier: "en_US_POSIX")
         let lats = sampleCoordinates.map {
             $0.coord.latitude.formatted(.number.locale(posixLocale).precision(.fractionLength(4)).grouping(.never))
@@ -53,7 +186,7 @@ actor ElevationService {
 
         do {
             var request = URLRequest(url: url)
-            request.timeoutInterval = 10.0
+            request.timeoutInterval = 8.0
 
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
@@ -61,80 +194,36 @@ actor ElevationService {
             }
 
             let decoded = try JSONDecoder().decode(OpenMeteoElevationResponse.self, from: data)
-            guard decoded.elevation.count == sampleCoordinates.count else {
-                return nil
-            }
-
-            // 3. Altitude de l'observateur (utiliser l'altitude GPS si valide > -100m, sinon l'altitude MNT au sol)
-            let observerGroundAlt = decoded.elevation[0]
-            let observerAlt = observerLocation.altitude > -100 ? observerLocation.altitude : observerGroundAlt
-            
-            // Dépression d'horizon causée par l'altitude (en degrés)
-            let horizonDip = 0.0293 * sqrt(max(0.0, observerAlt))
-
-            // 4. Calcul de l'angle d'élévation pour chaque point avec courbure et réfraction
-            var elevationPoints: [ElevationPoint] = []
-            var maxAngle: Double = -90.0
-            var maxAngleDist: Double = 0.0
-
-            for i in 0..<sampleCoordinates.count {
-                let distKm = sampleCoordinates[i].distanceKm
-                let coord = sampleCoordinates[i].coord
-                let elev = decoded.elevation[i]
-
-                if distKm == 0.0 {
-                    elevationPoints.append(
-                        ElevationPoint(
-                            distanceKm: 0.0,
-                            latitude: coord.latitude,
-                            longitude: coord.longitude,
-                            elevationMeters: elev,
-                            angleDegrees: 0.0
-                        )
-                    )
-                    continue
-                }
-
-                let distMeters = distKm * 1000.0
-                // Correction courbure + réfraction atmosphérique : d^2 / (2 * R_eff)
-                let curvatureDrop = (distMeters * distMeters) / (2.0 * effectiveEarthRadiusMeters)
-                let deltaHeightApparent = (elev - observerAlt) - curvatureDrop
-                
-                // Angle angulaire depuis l'observateur
-                let angleRad = atan2(deltaHeightApparent, distMeters)
-                let angleDeg = angleRad * 180.0 / .pi
-
-                if angleDeg > maxAngle {
-                    maxAngle = angleDeg
-                    maxAngleDist = distKm
-                }
-
-                elevationPoints.append(
-                    ElevationPoint(
-                        distanceKm: distKm,
-                        latitude: coord.latitude,
-                        longitude: coord.longitude,
-                        elevationMeters: elev,
-                        angleDegrees: angleDeg
-                    )
-                )
-            }
-
-            let finalMaxObstructionAngle = max(0.0, maxAngle)
-            let isObstructed = finalMaxObstructionAngle >= moonAltitudeDegrees
-
-            return TerrainProfile(
-                observerAltitudeMeters: observerAlt,
-                points: elevationPoints,
-                maxObstructionAngle: finalMaxObstructionAngle,
-                maxObstructionDistanceKm: maxAngleDist,
-                isObstructed: isObstructed,
-                moonAltitudeDegrees: moonAltitudeDegrees,
-                horizonDipDegrees: horizonDip
-            )
+            guard decoded.elevation.count == sampleCoordinates.count else { return nil }
+            return decoded.elevation
         } catch {
             return nil
         }
+    }
+
+    // MARK: - Détection Géographique
+    private func isInFrenchTerritory(_ coord: CLLocationCoordinate2D) -> Bool {
+        // France Métropolitaine & Corse
+        if coord.latitude >= 41.0 && coord.latitude <= 51.5 && coord.longitude >= -5.5 && coord.longitude <= 10.0 {
+            return true
+        }
+        // La Réunion
+        if coord.latitude >= -21.5 && coord.latitude <= -20.7 && coord.longitude >= 55.1 && coord.longitude <= 55.9 {
+            return true
+        }
+        // Guadeloupe / Martinique
+        if coord.latitude >= 14.3 && coord.latitude <= 16.6 && coord.longitude >= -61.9 && coord.longitude <= -60.7 {
+            return true
+        }
+        // Mayotte
+        if coord.latitude >= -13.1 && coord.latitude <= -12.5 && coord.longitude >= 45.0 && coord.longitude <= 45.4 {
+            return true
+        }
+        // Guyane
+        if coord.latitude >= 2.0 && coord.latitude <= 6.0 && coord.longitude >= -54.7 && coord.longitude <= -51.5 {
+            return true
+        }
+        return false
     }
 
     /// Calcule un point cible à partir d'une distance et d'un cap géodésique

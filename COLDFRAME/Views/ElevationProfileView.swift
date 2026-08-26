@@ -11,10 +11,16 @@ struct ElevationProfileView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
             HStack {
-                Label("Profil Topographique 3D", systemImage: "mountain.2")
-                    .font(.caption)
-                    .bold()
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Label("Profil Topographique 3D", systemImage: "mountain.2")
+                        .font(.caption)
+                        .bold()
+                        .foregroundStyle(.secondary)
+
+                    Text("• " + profile.dataSource)
+                        .font(.system(size: 9))
+                        .foregroundStyle(.cyan.opacity(0.8))
+                }
 
                 Spacer()
 

@@ -10,7 +10,27 @@ import CoreLocation
 
 struct ContentView: View {
     @State private var qiblaManager = QiblaManager()
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     
+    var body: some View {
+        GeometryReader { geometry in
+            let isLandscape = geometry.size.width > geometry.size.height
+
+            if isLandscape {
+                ARLandscapeObservationView(qiblaManager: qiblaManager)
+                    .transition(.opacity)
+            } else {
+                PortraitContentView(qiblaManager: qiblaManager)
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: verticalSizeClass)
+    }
+}
+
+private struct PortraitContentView: View {
+    var qiblaManager: QiblaManager
+
     var body: some View {
         ZStack {
             (qiblaManager.isAligned ? Color.green : Color.clear)
@@ -37,7 +57,7 @@ struct ContentView: View {
                 }
             } else {
                 ScrollView {
-                    VStack(spacing: DesignSystem.Spacing.large) {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.large) {
                         // Titre
                         VStack(spacing: DesignSystem.Spacing.small) {
                             Text("COLDFRAME")
@@ -57,27 +77,44 @@ struct ContentView: View {
                                 )
                             }
                         }
+                        .frame(maxWidth: .infinity)
                         .padding(.top)
 
-                        // Boussole Modernisée (Style Apple)
+                        // Boussole Modernisée avec pointeurs Qibla et Lune
                         CompassWidget(qiblaManager: qiblaManager)
+                            .frame(maxWidth: .infinity)
 
-                        // Horaires de Prière et Hilal
-                        Text("Horaires de Prière")
-                            .font(.title3.weight(.medium))
-                            .foregroundStyle(.secondary)
-                            .padding(.leading)
+                        // Horaires de Prière
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
+                            Text("Horaires de Prière")
+                                .font(.title3.weight(.medium))
+                                .foregroundStyle(.secondary)
+                                .padding(.leading)
 
-                        PrayerTimesList(prayers: qiblaManager.prayerTimes, nextPrayer: qiblaManager.nextPrayer)
-                        
-                        Text("Observation du Hilal")
-                            .font(.title3.weight(.medium))
-                            .foregroundStyle(.secondary)
-                            .padding(.leading)
+                            PrayerTimesList(prayers: qiblaManager.prayerTimes, nextPrayer: qiblaManager.nextPrayer)
+                        }
 
-                        // Tracker d'observation du Hilal / Lune
-                        HilalObservationView(data: qiblaManager.hilalObservation)
-                            .padding(.horizontal)
+                        // Guide de repérage diurne de la Lune
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
+                            Text("Repérage en Plein Jour")
+                                .font(.title3.weight(.medium))
+                                .foregroundStyle(.secondary)
+                                .padding(.leading)
+
+                            DaytimeMoonGuideView(position: qiblaManager.liveMoonPosition)
+                                .padding(.horizontal)
+                        }
+
+                        // Tracker d'observation du Hilal / Coucher du Soleil
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
+                            Text("Observation du Hilal (Maghrib)")
+                                .font(.title3.weight(.medium))
+                                .foregroundStyle(.secondary)
+                                .padding(.leading)
+
+                            HilalObservationView(data: qiblaManager.hilalObservation)
+                                .padding(.horizontal)
+                        }
                     }
                     .padding(.bottom, DesignSystem.Spacing.large)
                 }
@@ -88,7 +125,7 @@ struct ContentView: View {
             newValue
         }
     }
-    
+
     private func openSettings() {
         if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)

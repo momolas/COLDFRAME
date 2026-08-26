@@ -159,4 +159,77 @@ enum AstronomicManager {
         let data = await getHilalObservation(for: date, maghribDate: maghribDate, location: clLocation)
         return data.visibility
     }
+
+    @concurrent
+    static func getLiveMoonPosition(for date: Date = Date(), location: CLLocation) async -> LiveMoonPosition {
+        let geo = GeographicCoordinates(
+            positivelyWestwardLongitude: Degree(-location.coordinate.longitude),
+            latitude: Degree(location.coordinate.latitude)
+        )
+        let jd = JulianDay(date)
+        let moon = Moon(julianDay: jd)
+        let sun = Sun(julianDay: jd)
+
+        let moonHorizontal = moon.makeHorizontalCoordinates(with: geo)
+        let sunHorizontal = sun.makeHorizontalCoordinates(with: geo)
+
+        let observerAlt = location.altitude > -100 ? location.altitude : 0.0
+        let horizonDip = 0.0293 * sqrt(max(0.0, observerAlt))
+
+        let moonAltitude = moonHorizontal.altitude.value + horizonDip
+        let astronomicalMoonAzimuth = moonHorizontal.azimuth.value
+        let moonCompassAzimuth = (astronomicalMoonAzimuth + 180.0).truncatingRemainder(dividingBy: 360.0)
+
+        let sunAltitude = sunHorizontal.altitude.value
+        let astronomicalSunAzimuth = sunHorizontal.azimuth.value
+        let sunCompassAzimuth = (astronomicalSunAzimuth + 180.0).truncatingRemainder(dividingBy: 360.0)
+
+        let elongation = moon.equatorialCoordinates.angularSeparation(with: sun.equatorialCoordinates).value
+        let illumination = moon.illuminatedFraction()
+
+        let trajectory = await getMoonTrajectory(for: date, location: location)
+
+        return LiveMoonPosition(
+            azimuthDegrees: moonCompassAzimuth,
+            altitudeDegrees: moonAltitude,
+            sunAzimuthDegrees: sunCompassAzimuth,
+            sunAltitudeDegrees: sunAltitude,
+            elongationDegrees: elongation,
+            illuminatedFraction: illumination,
+            trajectory: trajectory,
+            skyline: []
+        )
+    }
+
+    @concurrent
+    static func getMoonTrajectory(for date: Date = Date(), location: CLLocation) async -> [MoonTrajectoryPoint] {
+        let geo = GeographicCoordinates(
+            positivelyWestwardLongitude: Degree(-location.coordinate.longitude),
+            latitude: Degree(location.coordinate.latitude)
+        )
+        let observerAlt = location.altitude > -100 ? location.altitude : 0.0
+        let horizonDip = 0.0293 * sqrt(max(0.0, observerAlt))
+
+        var points: [MoonTrajectoryPoint] = []
+        let calendar = Calendar.current
+        for offsetMinutes in stride(from: -180, through: 360, by: 30) {
+            guard let sampleDate = calendar.date(byAdding: .minute, value: offsetMinutes, to: date) else { continue }
+            let jd = JulianDay(sampleDate)
+            let moon = Moon(julianDay: jd)
+            let horiz = moon.makeHorizontalCoordinates(with: geo)
+            let alt = horiz.altitude.value + horizonDip
+            let astroAz = horiz.azimuth.value
+            let compAz = (astroAz + 180.0).truncatingRemainder(dividingBy: 360.0)
+            let timeStr = sampleDate.formatted(date: .omitted, time: .shortened)
+            points.append(
+                MoonTrajectoryPoint(
+                    date: sampleDate,
+                    azimuthDegrees: compAz,
+                    altitudeDegrees: alt,
+                    formattedTime: timeStr
+                )
+            )
+        }
+        return points
+    }
 }
