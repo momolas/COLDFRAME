@@ -36,6 +36,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     // Options de terrain et observation AR
     var isNightVisionMode: Bool = false
     var showOpticalReticle: Bool = true
+    var showTerrainSkyline: Bool = true
 
     @ObservationIgnored private var lastCalculationDate: Date?
     @ObservationIgnored private var lastCalculationLocation: CLLocation?
@@ -88,12 +89,12 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         var obsData = await AstronomicManager.getHilalObservation(for: Date(), maghribDate: maghrib, location: activeLocation)
 
         if let loc = activeLocation {
-            self.liveMoonPosition = await AstronomicManager.getLiveMoonPosition(for: Date(), location: loc)
+            var liveMoon = await AstronomicManager.getLiveMoonPosition(for: Date(), location: loc)
             obsData.isAnalyzingTerrain = true
             obsData.isFetchingWeather = true
             self.hilalObservation = obsData
 
-            // Fetch météo crépusculaire en tâche asynchrone
+            // Fetch météo, profil d'obstruction et crêtes 360° en parallèle
             async let terrainTask = ElevationService.shared.fetchTerrainProfile(
                 from: loc,
                 azimuthDegrees: obsData.azimuthDegrees,
@@ -103,8 +104,12 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
                 for: loc.coordinate,
                 targetTime: obsData.bestObservationTime ?? maghrib ?? Date()
             )
+            async let skylineTask = ElevationService.shared.fetchPanoramicSkyline(from: loc)
 
-            let (terrain, weather) = await (terrainTask, weatherTask)
+            let (terrain, weather, skyline) = await (terrainTask, weatherTask, skylineTask)
+
+            liveMoon.skyline = skyline
+            self.liveMoonPosition = liveMoon
 
             obsData.weatherConditions = weather
             obsData.isFetchingWeather = false

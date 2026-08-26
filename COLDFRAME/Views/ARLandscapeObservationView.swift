@@ -62,28 +62,40 @@ struct ARLandscapeObservationView: View {
                         )
                     }
 
-                    // B. Profil de relief MNT (si disponible)
-                    if let profile = qiblaManager.hilalObservation.terrainProfile, !profile.points.isEmpty {
-                        var terrainPath = Path()
-                        var started = false
+                    // B. Profil panoramique de relief MNT (Skyline 360° PeakFinder)
+                    if qiblaManager.showTerrainSkyline && !qiblaManager.liveMoonPosition.skyline.isEmpty {
+                        let skyline = qiblaManager.liveMoonPosition.skyline
+                        var visibleSkyline: [(x: CGFloat, y: CGFloat, pt: SkylinePoint)] = []
 
-                        for pt in profile.points {
-                            let ptX = projectX(azimuth: qiblaManager.hilalObservation.azimuthDegrees, yaw: currentYaw, screenWidth: size.width)
-                            let ptY = projectY(altitude: pt.angleDegrees, pitch: currentPitch, screenHeight: size.height)
-
-                            if !started {
-                                terrainPath.move(to: CGPoint(x: ptX, y: ptY))
-                                started = true
-                            } else {
-                                terrainPath.addLine(to: CGPoint(x: ptX, y: ptY))
+                        for pt in skyline {
+                            let x = projectX(azimuth: pt.azimuthDegrees, yaw: currentYaw, screenWidth: size.width)
+                            let y = projectY(altitude: pt.elevationAngleDegrees, pitch: currentPitch, screenHeight: size.height)
+                            if x >= -80 && x <= size.width + 80 {
+                                visibleSkyline.append((x, y, pt))
                             }
                         }
 
-                        context.stroke(
-                            terrainPath,
-                            with: .color(qiblaManager.isNightVisionMode ? .red.opacity(0.9) : .orange.opacity(0.8)),
-                            lineWidth: 2.0
-                        )
+                        visibleSkyline.sort { $0.x < $1.x }
+
+                        if visibleSkyline.count >= 2 {
+                            var terrainPath = Path()
+                            terrainPath.move(to: CGPoint(x: visibleSkyline[0].x, y: visibleSkyline[0].y))
+                            for i in 1..<visibleSkyline.count {
+                                terrainPath.addLine(to: CGPoint(x: visibleSkyline[i].x, y: visibleSkyline[i].y))
+                            }
+
+                            let ridgeColor = qiblaManager.isNightVisionMode ? Color.red.opacity(0.9) : Color.orange.opacity(0.85)
+                            context.stroke(terrainPath, with: .color(ridgeColor), lineWidth: 2.2)
+
+                            // Remplissage semi-transparent sous la ligne de crête
+                            if let first = visibleSkyline.first, let last = visibleSkyline.last {
+                                var fillPath = terrainPath
+                                fillPath.addLine(to: CGPoint(x: last.x, y: size.height))
+                                fillPath.addLine(to: CGPoint(x: first.x, y: size.height))
+                                fillPath.closeSubpath()
+                                context.fill(fillPath, with: .color(ridgeColor.opacity(0.12)))
+                            }
+                        }
                     }
 
                     // C. Arc de Trajectoire de la Lune
@@ -259,6 +271,27 @@ struct ARLandscapeObservationView: View {
                                 .font(.caption2)
                                 .bold()
                                 .foregroundStyle(qiblaManager.showOpticalReticle ? primaryColor : .secondary)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(.black.opacity(0.65))
+                        .clipShape(.capsule)
+                    }
+                    .buttonStyle(.plain)
+
+                    // Bouton Relief 3D (MNT Skyline)
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            qiblaManager.showTerrainSkyline.toggle()
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "mountain.2.fill")
+                                .foregroundStyle(qiblaManager.showTerrainSkyline ? (qiblaManager.isNightVisionMode ? .red : .orange) : .secondary)
+                            Text("Relief 3D")
+                                .font(.caption2)
+                                .bold()
+                                .foregroundStyle(qiblaManager.showTerrainSkyline ? (qiblaManager.isNightVisionMode ? .red : .orange) : .secondary)
                         }
                         .padding(.horizontal, 8)
                         .padding(.vertical, 5)
