@@ -18,7 +18,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     var heading: Double = 0.0
     var trueHeading: Double = 0.0
     var magneticHeading: Double = 0.0
-    var isTrueNorth: Bool = true
+    var isTrueNorth: Bool = false // Nord Magnétique par défaut pour correspondance 1:1 avec la Boussole Apple
     var headingAccuracy: Double = -1.0
     var qiblaAngle: Double = 0.0
     var isAligned: Bool = false
@@ -54,7 +54,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = 50 // Optimize: 50 meters throttle to reduce re-renders
         locationManager.headingFilter = kCLHeadingFilterNone // Précision maximale continue
-        locationManager.headingOrientation = .portrait       // Fixer l'orientation du capteur au sommet de l'appareil
+        locationManager.headingOrientation = .portrait       // Repère fixe et stable (sommet de l'iPhone)
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         locationManager.startUpdatingHeading()
@@ -74,10 +74,6 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         }
 
         self.startPeriodicUpdates()
-    }
-
-    func setLandscapeOrientation(_ isLandscape: Bool) {
-        locationManager.headingOrientation = isLandscape ? .landscapeLeft : .portrait
     }
 
     func toggleNorthReference() {

@@ -60,9 +60,9 @@ struct ARLandscapeObservationView: View {
         qiblaManager.isNightVisionMode ? Color.red.opacity(0.9) : Color.orange.opacity(0.9)
     }
 
-    // Cap boussole de visée : magnétomètre matériel étalonné de l'iPhone
+    // Cap boussole de visée en mode Paysage : l'axe optique de la caméra est orienté à +90° du sommet de l'iPhone
     private var baseCompassYaw: Double {
-        qiblaManager.heading
+        (qiblaManager.heading + 90.0).truncatingRemainder(dividingBy: 360.0)
     }
 
     var body: some View {
@@ -250,12 +250,10 @@ struct ARLandscapeObservationView: View {
             }
         }
         .onAppear {
-            qiblaManager.setLandscapeOrientation(true)
             motionManager.startTracking()
             qiblaManager.refreshSkylineIfNeeded()
         }
         .onDisappear {
-            qiblaManager.setLandscapeOrientation(false)
             motionManager.stopTracking()
         }
     }
