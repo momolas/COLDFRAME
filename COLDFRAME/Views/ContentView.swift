@@ -63,18 +63,21 @@ struct ContentView: View {
                         CompassWidget(qiblaManager: qiblaManager)
 
                         // Horaires de Prière et Hilal
-                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
-                            Text("Horaires de Prière")
-                                .font(.title3.weight(.medium))
-                                .foregroundStyle(.secondary)
-                                .padding(.leading)
+                        Text("Horaires de Prière")
+                            .font(.title3.weight(.medium))
+                            .foregroundStyle(.secondary)
+                            .padding(.leading)
 
-                            PrayerTimesList(prayers: qiblaManager.prayerTimes, nextPrayer: qiblaManager.nextPrayer)
+                        PrayerTimesList(prayers: qiblaManager.prayerTimes, nextPrayer: qiblaManager.nextPrayer)
+                        
+                        Text("Observation du Hilal")
+                            .font(.title3.weight(.medium))
+                            .foregroundStyle(.secondary)
+                            .padding(.leading)
 
-                            // Tracker d'observation du Hilal / Lune
-                            HilalObservationView(data: qiblaManager.hilalObservation)
-                                .padding(.horizontal)
-                        }
+                        // Tracker d'observation du Hilal / Lune
+                        HilalObservationView(data: qiblaManager.hilalObservation)
+                            .padding(.horizontal)
                     }
                     .padding(.bottom, DesignSystem.Spacing.large)
                 }
