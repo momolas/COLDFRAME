@@ -105,6 +105,5 @@ struct CompassWidget: View {
             .rotationEffect(.degrees(-safeHeading))
         }
         .frame(height: DesignSystem.Layout.widgetHeight)
-        .animation(.interactiveSpring(response: 0.6, dampingFraction: 0.6), value: safeHeading)
     }
 }
