@@ -103,123 +103,49 @@ enum AstronomicManager {
         
         let geo = GeographicCoordinates(
             positivelyWestwardLongitude: Degree(-location.coordinate.longitude),
-            latitude: Degree(location.coordinate.latitude)
+            latitude: Degree(location.coordinate.latitude),
+            altitude: Meter(location.altitude > -100 ? location.altitude : 0.0)
         )
 
         let targetDate = maghribDate ?? date
-        let sun = Sun(julianDay: JulianDay(targetDate))
-        let moon = Moon(julianDay: JulianDay(targetDate))
+        let jd = JulianDay(targetDate)
+        let moon = Moon(julianDay: jd)
 
-        // 1. Calcul précis des heures de coucher du Soleil et de la Lune
-        let sunRts = sun.riseTransitSetTimes(for: geo)
-        let moonRts = moon.riseTransitSetTimes(for: geo)
+        // 1. Calcul via le module complet Hilal.swift de SwiftAA
+        let odehResult = moon.crescentVisibility(for: geo, criterion: .odeh)
+        let yallopResult = moon.crescentVisibility(for: geo, criterion: .yallop)
 
-        let sunsetDate = sunRts.setTime?.date ?? maghribDate ?? date
-        let moonsetDate = moonRts.setTime?.date
+        // 2. Coordonnées horizontales et azimut
+        let bestMoon = Moon(julianDay: odehResult.bestObservationTime)
+        let moonHoriz = bestMoon.makeHorizontalCoordinates(with: geo)
 
-        // Moon Lag (différence de coucher Soleil - Lune en minutes)
-        var moonLagMinutes = 0.0
-        if let moonset = moonsetDate {
-            moonLagMinutes = moonset.timeIntervalSince(sunsetDate) / 60.0
-        }
-
-        // Instant optimal d'observation : Sunset + 4/9 * Moonlag
-        let bestTime: Date?
-        if moonLagMinutes > 0 {
-            bestTime = sunsetDate.addingTimeInterval(moonLagMinutes * 60.0 * (4.0 / 9.0))
-        } else {
-            bestTime = sunsetDate
-        }
-
-        // 2. Calculs astronomiques topocentriques au moment du coucher du Soleil / Best Time
-        let evalDate = bestTime ?? sunsetDate
-        let evalJd = JulianDay(evalDate)
-        let evalMoon = Moon(julianDay: evalJd)
-        let evalSun = Sun(julianDay: evalJd)
-
-        let elongation = evalMoon.equatorialCoordinates.angularSeparation(with: evalSun.equatorialCoordinates).value
-        let moonHoriz = evalMoon.makeHorizontalCoordinates(with: geo)
-        let sunHoriz = evalSun.makeHorizontalCoordinates(with: geo)
-
-        // Dépression d'horizon (dip) due à l'altitude de l'observateur
         let observerAlt = location.altitude > -100 ? location.altitude : 0.0
         let horizonDip = 0.0293 * sqrt(max(0.0, observerAlt))
-        let moonAltitude = moonHoriz.altitude.value + horizonDip
-        let sunAltitude = sunHoriz.altitude.value
+        let moonAltitude = odehResult.moonTopocentricAltitude.value + horizonDip
 
-        // Azimut en cap boussole conventionnel
         let astronomicalAzimuth = moonHoriz.azimuth.value
         let compassAzimuth = (astronomicalAzimuth + 180.0).truncatingRemainder(dividingBy: 360.0)
 
-        let astronomicalSunAzimuth = sunHoriz.azimuth.value
-        let sunCompassAzimuth = (astronomicalSunAzimuth + 180.0).truncatingRemainder(dividingBy: 360.0)
-
-        // ARCV (Arc of Vision) & DAZ (Difference in Azimuth)
-        let arcOfVision = moonAltitude - sunAltitude
-        var daz = abs(compassAzimuth - sunCompassAzimuth)
-        if daz > 180.0 { daz = 360.0 - daz }
-
-        // Largeur du croissant W en minutes d'arc (SD standard ~ 15.5')
-        let moonSemiDiameter = 15.5
-        let crescentWidth = moonSemiDiameter * (1.0 - cos(elongation * .pi / 180.0))
-
-        // Âge de la Lune en heures
-        let lastNewMoon = evalMoon.time(of: .newMoon, forward: false)
-        let ageInHours = (evalMoon.julianDay.value - lastNewMoon.value) * 24.0
-
-        // 3. Modèle scientifique de visibilité Odeh (2004) & Yallop (1997)
-        // Référence : Mohammad Shaukat Odeh (2004, Experimental Astronomy 18: 39-64)
-        // V = ARCV - (11.8371 - 6.3226 * W + 0.7319 * W^2 - 0.1018 * W^3)
-        let w = crescentWidth
-        let polynomialThreshold = 11.8371 - (6.3226 * w) + (0.7319 * pow(w, 2)) - (0.1018 * pow(w, 3))
-        let vValue = arcOfVision - polynomialThreshold
-        let qValue = vValue / 10.0
-
-        let odehZone: String
-        let yallopZone: String
-        let baseVisibility: HilalVisibility
-
-        // Limite de Danjon affinée par Odeh (6.4° d'élongation)
-        if elongation < 6.4 || moonAltitude <= 0.0 || moonLagMinutes <= 0.0 {
-            odehZone = "D"
-            yallopZone = "F"
-            baseVisibility = .impossible
-        } else if vValue >= 5.65 {
-            odehZone = "A"
-            yallopZone = "A"
-            baseVisibility = .easilyVisibleNakedEye
-        } else if vValue >= 2.00 {
-            odehZone = "B"
-            yallopZone = (qValue > -0.060) ? "B" : "C"
-            baseVisibility = .visibleNakedEyePerfectConditions
-        } else if vValue >= -0.96 {
-            odehZone = "C"
-            yallopZone = (qValue > -0.232) ? "D" : "E"
-            baseVisibility = .opticalAidOnly
-        } else {
-            odehZone = "D"
-            yallopZone = "E"
-            baseVisibility = .impossible
-        }
+        let baseVisibility = HilalVisibility(zone: odehResult.zone)
 
         return HilalObservationData(
             visibility: baseVisibility,
             azimuthDegrees: compassAzimuth,
             moonAltitudeDegrees: moonAltitude,
-            moonAgeHours: ageInHours,
-            elongationDegrees: elongation,
+            moonAgeHours: odehResult.moonAge.value,
+            elongationDegrees: odehResult.elongation.value,
             observerAltitudeMeters: observerAlt,
-            odehVValue: vValue,
-            odehZone: odehZone,
-            yallopQValue: qValue,
-            yallopZone: yallopZone,
-            arcOfVisionDegrees: arcOfVision,
-            azimuthDifferenceDegrees: daz,
-            crescentWidthArcminutes: crescentWidth,
-            moonLagMinutes: moonLagMinutes,
-            sunsetTime: sunsetDate,
-            moonsetTime: moonsetDate,
-            bestObservationTime: bestTime,
+            odehVValue: odehResult.qValue,
+            odehZone: odehResult.zone.rawValue,
+            yallopQValue: yallopResult.qValue,
+            yallopZone: yallopResult.zone.rawValue,
+            arcOfVisionDegrees: odehResult.arcOfVision.value,
+            azimuthDifferenceDegrees: odehResult.differenceInAzimuth.value,
+            crescentWidthArcminutes: odehResult.crescentWidth.value,
+            moonLagMinutes: odehResult.lagTime.value,
+            sunsetTime: odehResult.sunsetTime.date,
+            moonsetTime: odehResult.moonsetTime.date,
+            bestObservationTime: odehResult.bestObservationTime.date,
             weatherConditions: nil,
             terrainProfile: nil,
             isAnalyzingTerrain: false,

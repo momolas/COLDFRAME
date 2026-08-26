@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftAA
 
 nonisolated enum HilalVisibility: String, Equatable, Sendable {
     case notObservationDay = "Pas de recherche aujourd'hui"
@@ -15,6 +16,19 @@ nonisolated enum HilalVisibility: String, Equatable, Sendable {
     case opticalAidThenNakedEye = "Aide optique pour repérage puis œil nu"
     case visibleNakedEyePerfectConditions = "Visible à l'œil nu (Ciel parfait)"
     case easilyVisibleNakedEye = "Facilement visible à l'œil nu"
+
+    init(zone: CrescentVisibilityZone) {
+        switch zone {
+        case .easilyVisibleNakedEye:
+            self = .easilyVisibleNakedEye
+        case .visibleNakedEyeUnderFavorableConditions:
+            self = .visibleNakedEyePerfectConditions
+        case .visibleOnlyWithOpticalAid:
+            self = .opticalAidOnly
+        case .notVisibleEvenWithOpticalAid, .belowDanjonLimit:
+            self = .impossible
+        }
+    }
 
     var icon: String {
         switch self {
