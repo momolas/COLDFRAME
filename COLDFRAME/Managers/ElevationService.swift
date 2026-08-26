@@ -252,11 +252,11 @@ actor ElevationService {
         let observerCoord = observerLocation.coordinate
         let observerAlt = observerLocation.altitude > -100 ? observerLocation.altitude : 0.0
 
-        // On échantillonne 60 directions d'azimut (tous les 6° de 0° à 354°)
-        // Pour chaque azimut, on analyse 2 distances de crête (5 km et 18 km)
+        // Échantillonnage de 72 directions d'azimut (tous les 5° de 0° à 355°)
+        // Pour chaque azimut, on vérifie 2 distances de crêtes (6 km et 18 km) -> 144 points
         var sampleCoordinates: [(azimuth: Double, distanceKm: Double, coord: CLLocationCoordinate2D)] = []
-        let azimuths = stride(from: 0.0, to: 360.0, by: 6.0)
-        let distances = [5.0, 18.0]
+        let azimuths = stride(from: 0.0, to: 360.0, by: 5.0)
+        let distances = [6.0, 18.0]
 
         for az in azimuths {
             for dist in distances {
@@ -265,62 +265,83 @@ actor ElevationService {
             }
         }
 
-        let posixLocale = Locale(identifier: "en_US_POSIX")
-        let lats = sampleCoordinates.map {
-            $0.coord.latitude.formatted(.number.locale(posixLocale).precision(.fractionLength(4)).grouping(.never))
-        }.joined(separator: ",")
-        let lons = sampleCoordinates.map {
-            $0.coord.longitude.formatted(.number.locale(posixLocale).precision(.fractionLength(4)).grouping(.never))
-        }.joined(separator: ",")
-
-        guard let url = URL(string: "https://api.open-meteo.com/v1/elevation?latitude=\(lats)&longitude=\(lons)") else {
+        // Récupération par lots de 50 points pour ne jamais dépasser la limite de l'API
+        guard let elevations = await fetchElevationsBatch(coordinates: sampleCoordinates.map(\.coord)),
+              elevations.count == sampleCoordinates.count else {
             return []
         }
 
-        do {
-            var request = URLRequest(url: url)
-            request.timeoutInterval = 8.0
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-                return []
-            }
-            let decoded = try JSONDecoder().decode(OpenMeteoElevationResponse.self, from: data)
-            guard decoded.elevation.count == sampleCoordinates.count else { return [] }
+        var skylineMap: [Double: (maxAngle: Double, dist: Double, alt: Double)] = [:]
 
-            var skylineMap: [Double: (maxAngle: Double, dist: Double, alt: Double)] = [:]
+        for i in 0..<sampleCoordinates.count {
+            let az = sampleCoordinates[i].azimuth
+            let distKm = sampleCoordinates[i].distanceKm
+            let elev = elevations[i]
 
-            for i in 0..<sampleCoordinates.count {
-                let az = sampleCoordinates[i].azimuth
-                let distKm = sampleCoordinates[i].distanceKm
-                let elev = decoded.elevation[i]
+            let distMeters = distKm * 1000.0
+            let curvatureDrop = (distMeters * distMeters) / (2.0 * effectiveEarthRadiusMeters)
+            let deltaHeightApparent = (elev - observerAlt) - curvatureDrop
+            let angleDeg = atan2(deltaHeightApparent, distMeters) * 180.0 / .pi
 
-                let distMeters = distKm * 1000.0
-                let curvatureDrop = (distMeters * distMeters) / (2.0 * effectiveEarthRadiusMeters)
-                let deltaHeightApparent = (elev - observerAlt) - curvatureDrop
-                let angleDeg = atan2(deltaHeightApparent, distMeters) * 180.0 / .pi
-
-                if let existing = skylineMap[az] {
-                    if angleDeg > existing.maxAngle {
-                        skylineMap[az] = (maxAngle: angleDeg, dist: distKm, alt: elev)
-                    }
-                } else {
+            if let existing = skylineMap[az] {
+                if angleDeg > existing.maxAngle {
                     skylineMap[az] = (maxAngle: angleDeg, dist: distKm, alt: elev)
                 }
+            } else {
+                skylineMap[az] = (maxAngle: angleDeg, dist: distKm, alt: elev)
             }
-
-            let sortedPoints = skylineMap.keys.sorted().compactMap { az -> SkylinePoint? in
-                guard let data = skylineMap[az] else { return nil }
-                return SkylinePoint(
-                    azimuthDegrees: az,
-                    elevationAngleDegrees: data.maxAngle,
-                    distanceKm: data.dist,
-                    altitudeMeters: data.alt
-                )
-            }
-
-            return sortedPoints
-        } catch {
-            return []
         }
+
+        let sortedPoints = skylineMap.keys.sorted().compactMap { az -> SkylinePoint? in
+            guard let data = skylineMap[az] else { return nil }
+            return SkylinePoint(
+                azimuthDegrees: az,
+                elevationAngleDegrees: data.maxAngle,
+                distanceKm: data.dist,
+                altitudeMeters: data.alt
+            )
+        }
+
+        return sortedPoints
+    }
+
+    /// Récupère des altitudes en découpant en requêtes batch de 50 coordonnées max
+    private func fetchElevationsBatch(coordinates: [CLLocationCoordinate2D]) async -> [Double]? {
+        guard !coordinates.isEmpty else { return [] }
+        var allElevations: [Double] = []
+        let chunkSize = 50
+        let posixLocale = Locale(identifier: "en_US_POSIX")
+
+        for startIdx in stride(from: 0, to: coordinates.count, by: chunkSize) {
+            let endIdx = min(startIdx + chunkSize, coordinates.count)
+            let chunk = Array(coordinates[startIdx..<endIdx])
+
+            let lats = chunk.map {
+                $0.latitude.formatted(.number.locale(posixLocale).precision(.fractionLength(4)).grouping(.never))
+            }.joined(separator: ",")
+            let lons = chunk.map {
+                $0.longitude.formatted(.number.locale(posixLocale).precision(.fractionLength(4)).grouping(.never))
+            }.joined(separator: ",")
+
+            guard let url = URL(string: "https://api.open-meteo.com/v1/elevation?latitude=\(lats)&longitude=\(lons)") else {
+                return nil
+            }
+
+            do {
+                var request = URLRequest(url: url)
+                request.timeoutInterval = 8.0
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                    return nil
+                }
+                let decoded = try JSONDecoder().decode(OpenMeteoElevationResponse.self, from: data)
+                guard decoded.elevation.count == chunk.count else { return nil }
+                allElevations.append(contentsOf: decoded.elevation)
+            } catch {
+                return nil
+            }
+        }
+
+        return allElevations
     }
 }

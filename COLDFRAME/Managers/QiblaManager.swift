@@ -126,6 +126,16 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         self.hilalObservation = obsData
     }
 
+    func refreshSkylineIfNeeded() {
+        guard let loc = lastCalculationLocation ?? locationManager.location else { return }
+        if self.liveMoonPosition.skyline.isEmpty {
+            Task {
+                let skyline = await ElevationService.shared.fetchPanoramicSkyline(from: loc)
+                self.liveMoonPosition.skyline = skyline
+            }
+        }
+    }
+
     // MARK: - CoreLocation Delegate
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         MainActor.assumeIsolated {

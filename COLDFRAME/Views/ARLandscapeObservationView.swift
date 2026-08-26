@@ -28,6 +28,10 @@ struct ARLandscapeObservationView: View {
         qiblaManager.isNightVisionMode ? Color(red: 1.0, green: 0.45, blue: 0.2) : .yellow
     }
 
+    private var horizonColor: Color {
+        qiblaManager.isNightVisionMode ? Color(red: 0.7, green: 0.2, blue: 0.2) : Color.green.opacity(0.85)
+    }
+
     var body: some View {
         ZStack {
             // 1. Flux Caméra
@@ -57,8 +61,8 @@ struct ARLandscapeObservationView: View {
                         horizonPath.addLine(to: CGPoint(x: size.width, y: horizonY))
                         context.stroke(
                             horizonPath,
-                            with: .color(primaryColor.opacity(0.4)),
-                            style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])
+                            with: .color(horizonColor),
+                            style: StrokeStyle(lineWidth: 1.5, dash: [8, 4])
                         )
                     }
 
@@ -172,7 +176,23 @@ struct ARLandscapeObservationView: View {
                     }
                 }
 
-                // 3. Éléments SwiftUI interactifs en surimpression (Lune, Soleil)
+                // 3. Éléments SwiftUI interactifs en surimpression (Horizon, Lune, Soleil)
+                let horizonY = projectY(altitude: 0.0, pitch: currentPitch, screenHeight: height)
+                if horizonY >= 20 && horizonY <= height - 20 {
+                    HStack(spacing: 3) {
+                        Image(systemName: "water.waves")
+                            .font(.system(size: 8))
+                        Text("HORIZON 0°")
+                            .font(.system(size: 8, weight: .bold))
+                    }
+                    .foregroundStyle(horizonColor)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(.black.opacity(0.6))
+                    .clipShape(.capsule)
+                    .position(x: 55, y: horizonY - 12)
+                }
+
                 let moonX = projectX(azimuth: qiblaManager.liveMoonPosition.azimuthDegrees, yaw: currentYaw, screenWidth: width)
                 let moonY = projectY(altitude: qiblaManager.liveMoonPosition.altitudeDegrees, pitch: currentPitch, screenHeight: height)
 
@@ -370,9 +390,29 @@ struct ARLandscapeObservationView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 12)
             }
+
+            // Indicateur discret de chargement du relief MNT si en cours
+            if qiblaManager.showTerrainSkyline && qiblaManager.liveMoonPosition.skyline.isEmpty {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 6) {
+                        ProgressView()
+                            .controlSize(.mini)
+                        Text("Calcul du profil MNT 360°...")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(.black.opacity(0.6))
+                    .clipShape(.capsule)
+                    .padding(.bottom, 60)
+                }
+            }
         }
         .onAppear {
             motionManager.startTracking()
+            qiblaManager.refreshSkylineIfNeeded()
         }
         .onDisappear {
             motionManager.stopTracking()
