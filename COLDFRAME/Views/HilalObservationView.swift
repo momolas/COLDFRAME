@@ -21,15 +21,6 @@ struct HilalObservationView: View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium) {
             // En-tête
             HStack(spacing: DesignSystem.Spacing.small) {
-                Image(systemName: "sparkles")
-                    .foregroundStyle(.blue)
-                Text("Observation du Hilal ce soir")
-                    .font(.subheadline)
-                    .bold()
-                    .foregroundStyle(.blue)
-
-                Spacer()
-
                 if data.isAnalyzingTerrain {
                     ProgressView()
                         .controlSize(.mini)

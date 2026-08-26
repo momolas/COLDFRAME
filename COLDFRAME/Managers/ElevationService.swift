@@ -38,9 +38,14 @@ actor ElevationService {
             sampleCoordinates.append((distKm, coord))
         }
 
-        // 2. Préparation de la requête vers Open-Meteo Elevation API
-        let lats = sampleCoordinates.map { $0.coord.latitude.formatted(.number.precision(.fractionLength(4))) }.joined(separator: ",")
-        let lons = sampleCoordinates.map { $0.coord.longitude.formatted(.number.precision(.fractionLength(4))) }.joined(separator: ",")
+        // 2. Préparation de la requête vers Open-Meteo Elevation API (avec locale POSIX pour forcer le point décimal)
+        let posixLocale = Locale(identifier: "en_US_POSIX")
+        let lats = sampleCoordinates.map {
+            $0.coord.latitude.formatted(.number.locale(posixLocale).precision(.fractionLength(4)).grouping(.never))
+        }.joined(separator: ",")
+        let lons = sampleCoordinates.map {
+            $0.coord.longitude.formatted(.number.locale(posixLocale).precision(.fractionLength(4)).grouping(.never))
+        }.joined(separator: ",")
 
         guard let url = URL(string: "https://api.open-meteo.com/v1/elevation?latitude=\(lats)&longitude=\(lons)") else {
             return nil

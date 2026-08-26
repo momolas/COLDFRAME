@@ -48,8 +48,18 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         locationManager.startUpdatingLocation()
         locationManager.startUpdatingHeading()
         NotificationManager.shared.requestAuthorization()
-        Task {
-            await updateIslamicDate()
+        
+        if let initialLoc = locationManager.location {
+            self.userLocation = initialLoc.coordinate
+            self.lastCalculationLocation = initialLoc
+            Task {
+                await self.calculatePrayersLocally(for: initialLoc)
+                await self.updateIslamicDate(location: initialLoc)
+            }
+        } else {
+            Task {
+                await self.updateIslamicDate()
+            }
         }
     }
 
