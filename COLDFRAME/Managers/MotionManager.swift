@@ -13,7 +13,8 @@ final class MotionManager {
     private let motionManager = CMMotionManager()
 
     var pitchDegrees: Double = 0.0 // Élévation verticale de l'axe optique caméra (-90° à +90°)
-    var rollDegrees: Double = 0.0  // Roulis de l'écran autour de l'axe optique
+    var rollDegrees: Double = 0.0  // Roulis de l'appareil
+    var screenRollDegrees: Double = 0.0 // Angle d'inclinaison 2D de l'écran par rapport à l'horizon (-180° à +180°)
     var yawDegrees: Double = 0.0   // Azimut boussole réel de visée (0° = Nord, 90° = Est, 180° = Sud, 270° = Ouest)
     var isTracking: Bool = false
 
@@ -21,11 +22,15 @@ final class MotionManager {
         CMMotionManager.availableAttitudeReferenceFrames().contains(.xTrueNorthZVertical)
     }
 
+    @ObservationIgnored private var isInitialized: Bool = false
+    private let smoothingFactor: Double = 0.28 // Lissage optimal (réactivité 60Hz sans jitter)
+
     func startTracking() {
         guard !isTracking else { return }
         guard motionManager.isDeviceMotionAvailable else { return }
 
-        motionManager.deviceMotionUpdateInterval = 1.0 / 60.0 // 60 Hz pour une fluidité AR parfaite
+        isInitialized = false
+        motionManager.deviceMotionUpdateInterval = 1.0 / 60.0 // 60 Hz pour une fluidité AR cinéma
 
         let frame: CMAttitudeReferenceFrame = isAvailable ? .xTrueNorthZVertical : .xMagneticNorthZVertical
 
@@ -43,20 +48,41 @@ final class MotionManager {
 
             // 1. Calcul de l'élévation optique réelle (Pitch) : angle avec le plan horizontal
             let clampedUp = max(-1.0, min(1.0, upComp))
-            let pitch = asin(clampedUp) * 180.0 / .pi
+            let rawPitch = asin(clampedUp) * 180.0 / .pi
 
             // 2. Calcul du cap boussole réel (Yaw) : 0°=Nord, 90°=Est, 180°=Sud, 270°=Ouest
             let yawRad = atan2(eastComp, northComp)
-            var yaw = yawRad * 180.0 / .pi
-            if yaw < 0 { yaw += 360.0 }
-            yaw = yaw.truncatingRemainder(dividingBy: 360.0)
+            var rawYaw = yawRad * 180.0 / .pi
+            if rawYaw < 0 { rawYaw += 360.0 }
+            rawYaw = rawYaw.truncatingRemainder(dividingBy: 360.0)
 
-            // 3. Roulis autour de l'axe de visée (pour compenser l'inclinaison de l'appareil)
-            let roll = motion.attitude.roll * 180.0 / .pi
+            // 3. Roulis autour de l'axe de visée (pour l'horizon artificiel 2D en paysage)
+            let rawRoll = motion.attitude.roll * 180.0 / .pi
+            let rawScreenRoll = atan2(matrix.m31, matrix.m32) * 180.0 / .pi
 
-            self.pitchDegrees = pitch
-            self.rollDegrees = roll
-            self.yawDegrees = yaw
+            // 4. Filtrage passe-bas anti-tremblement (Low-Pass Filter / EMA)
+            if !self.isInitialized {
+                self.pitchDegrees = rawPitch
+                self.yawDegrees = rawYaw
+                self.rollDegrees = rawRoll
+                self.screenRollDegrees = rawScreenRoll
+                self.isInitialized = true
+            } else {
+                self.pitchDegrees += (rawPitch - self.pitchDegrees) * self.smoothingFactor
+                self.rollDegrees += (rawRoll - self.rollDegrees) * self.smoothingFactor
+
+                var diffScreenRoll = rawScreenRoll - self.screenRollDegrees
+                while diffScreenRoll > 180.0 { diffScreenRoll -= 360.0 }
+                while diffScreenRoll < -180.0 { diffScreenRoll += 360.0 }
+                self.screenRollDegrees += diffScreenRoll * self.smoothingFactor
+
+                var diffYaw = rawYaw - self.yawDegrees
+                while diffYaw > 180.0 { diffYaw -= 360.0 }
+                while diffYaw < -180.0 { diffYaw += 360.0 }
+                var smoothedYaw = self.yawDegrees + diffYaw * self.smoothingFactor
+                if smoothedYaw < 0 { smoothedYaw += 360.0 }
+                self.yawDegrees = smoothedYaw.truncatingRemainder(dividingBy: 360.0)
+            }
         }
 
         isTracking = true
