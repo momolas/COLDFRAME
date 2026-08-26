@@ -60,6 +60,16 @@ struct ARLandscapeObservationView: View {
         qiblaManager.isNightVisionMode ? Color.red.opacity(0.9) : Color.orange.opacity(0.9)
     }
 
+    // Cap boussole de base : fusionne le magnétomètre hardware de QiblaManager avec CoreMotion
+    private var baseCompassYaw: Double {
+        if qiblaManager.heading > 0 {
+            return qiblaManager.heading
+        } else if motionManager.yawDegrees > 0 {
+            return motionManager.yawDegrees
+        }
+        return 0.0
+    }
+
     var body: some View {
         ZStack {
             // 1. Arrière-plan (Caméra RA ou Ciel Vectoriel PeakFinder)
@@ -95,7 +105,7 @@ struct ARLandscapeObservationView: View {
             GeometryReader { geometry in
                 let width = geometry.size.width
                 let height = geometry.size.height
-                let effectiveYaw = (motionManager.yawDegrees + manualAzimuthOffset).truncatingRemainder(dividingBy: 360.0)
+                let effectiveYaw = (baseCompassYaw + manualAzimuthOffset).truncatingRemainder(dividingBy: 360.0)
                 // En mode panorama, on amortit le pitch pour garder le relief toujours confortablement cadré
                 let pitchDamping: Double = displayMode == .panorama ? 0.45 : 1.0
                 let effectivePitch = (motionManager.pitchDegrees * pitchDamping) + manualPitchOffset
@@ -466,7 +476,7 @@ struct ARLandscapeObservationView: View {
     private func renderCompassRibbon() -> some View {
         GeometryReader { ribbonGeo in
             let ribbonWidth = ribbonGeo.size.width
-            let effectiveYaw = (motionManager.yawDegrees + manualAzimuthOffset).truncatingRemainder(dividingBy: 360.0)
+            let effectiveYaw = (baseCompassYaw + manualAzimuthOffset).truncatingRemainder(dividingBy: 360.0)
 
             ZStack {
                 // Ticks gradués tous les 5°
@@ -610,7 +620,7 @@ struct ARLandscapeObservationView: View {
             // Indicateur de Cap & Altitude
             HStack(spacing: DesignSystem.Spacing.small) {
                 Label(
-                    "Cap: \(((motionManager.yawDegrees + manualAzimuthOffset + 360).truncatingRemainder(dividingBy: 360)).formatted(.number.precision(.fractionLength(0))))°",
+                    "Cap: \(((baseCompassYaw + manualAzimuthOffset + 360).truncatingRemainder(dividingBy: 360)).formatted(.number.precision(.fractionLength(0))))°",
                     systemImage: "safari.fill"
                 )
                 .font(.caption)

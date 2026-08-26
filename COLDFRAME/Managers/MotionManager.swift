@@ -50,21 +50,12 @@ final class MotionManager {
 
             let matrix = motion.attitude.rotationMatrix
 
-            // Dans CoreMotion avec repère Z-Vertical :
-            // Axe optique de la caméra arrière = vecteur (0, 0, -1) dans le repère de l'iPhone
-            // Dans le repère terrestre (+X = Nord, +Y = Ouest, +Z = Zénith) :
-            // northComp = -m13, eastComp = +m23 (car Est = -Ouest), upComp = -m33
-            let northComp = -matrix.m13
-            let eastComp = matrix.m23
-            let upComp = -matrix.m33
-
-            // 1. Élévation optique (Pitch)
-            let clampedUp = max(-1.0, min(1.0, upComp))
+            // 1. Élévation optique (Pitch) : angle avec le plan horizontal
+            let clampedUp = max(-1.0, min(1.0, -matrix.m33))
             let rawPitch = asin(clampedUp) * 180.0 / .pi
 
-            // 2. Cap boussole réel (Yaw 360°)
-            let yawRad = atan2(eastComp, northComp)
-            var rawYaw = yawRad * 180.0 / .pi
+            // 2. Cap boussole (Yaw 360°) : combinaison attitude CoreMotion
+            var rawYaw = -motion.attitude.yaw * 180.0 / .pi
             if rawYaw < 0 { rawYaw += 360.0 }
             rawYaw = rawYaw.truncatingRemainder(dividingBy: 360.0)
 
@@ -81,6 +72,7 @@ final class MotionManager {
                 while diffYaw < -180.0 { diffYaw += 360.0 }
                 var smoothedYaw = self.yawDegrees + diffYaw * self.smoothingFactor
                 if smoothedYaw < 0 { smoothedYaw += 360.0 }
+                self.yawDegrees = smoothedYaw.truncatingRemainder(dividingBy: 360.0)
             }
         }
 
