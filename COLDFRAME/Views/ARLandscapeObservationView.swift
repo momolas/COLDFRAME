@@ -30,9 +30,14 @@ struct ARLandscapeObservationView: View {
     @State private var manualAzimuthOffset: Double = 0.0 // Calibrage manuel par glissement horizontal
     @State private var manualPitchOffset: Double = 0.0   // Calibrage vertical
 
-    // Champ de vision (FOV) optique pour l'iPhone en mode paysage
-    private let fovHorizontal: Double = 64.0
-    private let fovVertical: Double = 36.0
+    // Champ de vision (FOV) dynamique selon le mode
+    private var fovHorizontal: Double {
+        displayMode == .panorama ? 75.0 : 64.0
+    }
+
+    private var fovVertical: Double {
+        displayMode == .panorama ? 48.0 : 36.0
+    }
 
     // Couleurs dynamiques selon le mode Vision Nocturne
     private var primaryColor: Color {
@@ -75,10 +80,10 @@ struct ARLandscapeObservationView: View {
                         Color(red: 0.25, green: 0.04, blue: 0.04),
                         Color(red: 0.05, green: 0.0, blue: 0.0)
                     ] : [
-                        Color(red: 0.04, green: 0.08, blue: 0.18),
-                        Color(red: 0.10, green: 0.20, blue: 0.38),
-                        Color(red: 0.25, green: 0.35, blue: 0.50),
-                        Color(red: 0.08, green: 0.14, blue: 0.24)
+                        Color(red: 0.03, green: 0.06, blue: 0.15),
+                        Color(red: 0.08, green: 0.16, blue: 0.32),
+                        Color(red: 0.20, green: 0.30, blue: 0.45),
+                        Color(red: 0.06, green: 0.11, blue: 0.20)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -91,8 +96,9 @@ struct ARLandscapeObservationView: View {
                 let width = geometry.size.width
                 let height = geometry.size.height
                 let effectiveYaw = (motionManager.yawDegrees + manualAzimuthOffset).truncatingRemainder(dividingBy: 360.0)
-                let effectivePitch = motionManager.pitchDegrees + manualPitchOffset
-                let screenCenter = CGPoint(x: width / 2.0, y: height / 2.0)
+                // En mode panorama, on amortit le pitch pour garder le relief toujours confortablement cadré
+                let pitchDamping: Double = displayMode == .panorama ? 0.45 : 1.0
+                let effectivePitch = (motionManager.pitchDegrees * pitchDamping) + manualPitchOffset
 
                 ZStack {
                     Canvas { context, size in
@@ -212,14 +218,14 @@ struct ARLandscapeObservationView: View {
                 }
                 .rotationEffect(.degrees(-motionManager.screenRollDegrees), anchor: .center)
                 .contentShape(Rectangle())
-                // Geste de glissement pour calibrer finement l'alignement boussole (comme dans PeakFinder)
+                // Geste de glissement pour naviguer et calibrer
                 .gesture(
                     DragGesture()
                         .onChanged { value in
-                            let deltaAz = Double(-value.translation.width / width) * fovHorizontal * 0.4
-                            let deltaAlt = Double(value.translation.height / height) * fovVertical * 0.4
+                            let deltaAz = Double(-value.translation.width / width) * fovHorizontal * 0.35
+                            let deltaAlt = Double(value.translation.height / height) * fovVertical * 0.35
                             manualAzimuthOffset = (manualAzimuthOffset + deltaAz).truncatingRemainder(dividingBy: 360.0)
-                            manualPitchOffset = max(-20.0, min(20.0, manualPitchOffset + deltaAlt))
+                            manualPitchOffset = max(-30.0, min(30.0, manualPitchOffset + deltaAlt))
                         }
                 )
             }
@@ -249,40 +255,38 @@ struct ARLandscapeObservationView: View {
         }
     }
 
-    // MARK: - Tracé Panoramique Multi-Crêtes (PeakFinder Vector Landscape)
+    // MARK: - Tracé Panoramique Haute Résolution (PeakFinder Vector Landscape)
     private func drawPeakFinderTerrain(
         context: inout GraphicsContext,
         size: CGSize,
         yaw: Double,
         pitch: Double
     ) {
-        let skyline = qiblaManager.liveMoonPosition.skyline
-        guard !skyline.isEmpty else {
-            // Profil de secours si l'acquisition 360° est en cours
-            if let profile = qiblaManager.hilalObservation.terrainProfile, !profile.points.isEmpty {
-                var singlePath = Path()
-                let targetX = projectX(azimuth: qiblaManager.hilalObservation.azimuthDegrees, yaw: yaw, screenWidth: size.width)
-                let targetY = projectY(altitude: profile.maxObstructionAngle, pitch: pitch, screenHeight: size.height)
-                singlePath.addEllipse(in: CGRect(x: targetX - 8, y: targetY - 8, width: 16, height: 16))
-                context.stroke(singlePath, with: .color(ridgeColor), lineWidth: 2)
-            }
-            return
+        let rawSkyline = qiblaManager.liveMoonPosition.skyline
+
+        // Construction du profil dense continu (interpolation à haute résolution tous les 2.5°)
+        let activeSkyline: [(az: Double, alt: Double)]
+        if !rawSkyline.isEmpty {
+            activeSkyline = interpolateSkyline(rawSkyline)
+        } else {
+            // Silhouette organique de secours immédiate pendant l'acquisition réseau
+            activeSkyline = generateFallbackSkyline()
         }
 
-        // On projette et trie les points de crêtes visibles dans le champ avec une marge généreuse pour continuité totale
-        var visiblePoints: [(x: CGFloat, y: CGFloat, pt: SkylinePoint)] = []
-        for pt in skyline {
-            let x = projectX(azimuth: pt.azimuthDegrees, yaw: yaw, screenWidth: size.width)
-            let y = projectY(altitude: pt.elevationAngleDegrees, pitch: pitch, screenHeight: size.height)
-            if x >= -300 && x <= size.width + 300 {
-                visiblePoints.append((x, y, pt))
+        // On projette et trie les points de crêtes visibles dans le champ élargi
+        var visiblePoints: [(x: CGFloat, y: CGFloat)] = []
+        for pt in activeSkyline {
+            let x = projectX(azimuth: pt.az, yaw: yaw, screenWidth: size.width)
+            let y = projectY(altitude: pt.alt, pitch: pitch, screenHeight: size.height)
+            if x >= -350 && x <= size.width + 350 {
+                visiblePoints.append((x, y))
             }
         }
 
         visiblePoints.sort { $0.x < $1.x }
         guard visiblePoints.count >= 2 else { return }
 
-        // Tracé de la ligne de crête continue
+        // Tracé de la ligne de crête continue ultra-fluide
         var ridgePath = Path()
         ridgePath.move(to: CGPoint(x: visiblePoints[0].x, y: visiblePoints[0].y))
 
@@ -301,19 +305,63 @@ struct ARLandscapeObservationView: View {
         context.stroke(
             ridgePath,
             with: .color(ridgeColor),
-            lineWidth: displayMode == .panorama ? 2.5 : 2.0
+            lineWidth: displayMode == .panorama ? 2.8 : 2.0
         )
 
-        // Remplissage du volume de la montagne vers le bas
+        // Remplissage volumétrique de la montagne jusqu'en bas
         if let first = visiblePoints.first, let last = visiblePoints.last {
             var fillPath = ridgePath
-            fillPath.addLine(to: CGPoint(x: max(last.x, size.width + 100), y: size.height + 50))
-            fillPath.addLine(to: CGPoint(x: min(first.x, -100), y: size.height + 50))
+            fillPath.addLine(to: CGPoint(x: max(last.x, size.width + 200), y: size.height + 100))
+            fillPath.addLine(to: CGPoint(x: min(first.x, -200), y: size.height + 100))
             fillPath.closeSubpath()
 
             let fillOpacity = displayMode == .panorama ? 0.45 : 0.18
             context.fill(fillPath, with: .color(ridgeColor.opacity(fillOpacity)))
         }
+    }
+
+    // Interpolation haute résolution pour adoucir le contour du relief
+    private func interpolateSkyline(_ points: [SkylinePoint]) -> [(az: Double, alt: Double)] {
+        guard points.count >= 4 else {
+            return points.map { ($0.azimuthDegrees, $0.elevationAngleDegrees) }
+        }
+
+        var densePoints: [(az: Double, alt: Double)] = []
+        let count = points.count
+        for i in 0..<count {
+            let p0 = points[(i - 1 + count) % count]
+            let p1 = points[i]
+            let p2 = points[(i + 1) % count]
+            let p3 = points[(i + 2) % count]
+
+            densePoints.append((p1.azimuthDegrees, p1.elevationAngleDegrees))
+
+            // Point intermédiaire interpolé (Catmull-Rom spline)
+            let midAlt = 0.5 * (2.0 * p1.elevationAngleDegrees +
+                               (-p0.elevationAngleDegrees + p2.elevationAngleDegrees) * 0.5 +
+                               (2.0 * p0.elevationAngleDegrees - 5.0 * p1.elevationAngleDegrees + 4.0 * p2.elevationAngleDegrees - p3.elevationAngleDegrees) * 0.25 +
+                               (-p0.elevationAngleDegrees + 3.0 * p1.elevationAngleDegrees - 3.0 * p2.elevationAngleDegrees + p3.elevationAngleDegrees) * 0.125)
+
+            var midAz = (p1.azimuthDegrees + p2.azimuthDegrees) / 2.0
+            if abs(p2.azimuthDegrees - p1.azimuthDegrees) > 180.0 {
+                midAz = (p1.azimuthDegrees + p2.azimuthDegrees + 360.0) / 2.0
+                if midAz >= 360.0 { midAz -= 360.0 }
+            }
+            densePoints.append((midAz, max(0.1, midAlt)))
+        }
+
+        return densePoints.sorted { $0.az < $1.az }
+    }
+
+    // Profil de secours esthétique pour assurer un rendu instantané
+    private func generateFallbackSkyline() -> [(az: Double, alt: Double)] {
+        var points: [(az: Double, alt: Double)] = []
+        for az in stride(from: 0.0, to: 360.0, by: 5.0) {
+            let rad = az * .pi / 180.0
+            let alt = 1.2 + 0.8 * sin(rad * 3.0) + 0.5 * cos(rad * 5.0 + 1.2)
+            points.append((az: az, alt: max(0.3, alt)))
+        }
+        return points
     }
 
     // MARK: - Rendu des Étiquettes de Sommets
@@ -343,7 +391,7 @@ struct ARLandscapeObservationView: View {
         }
     }
 
-    // MARK: - Rendu des Étiquettes Célestes (Lune & Soleil)
+    // MARK: - Rendu des Étiquettes Célestes (Lune, Soleil & Qibla)
     @ViewBuilder
     private func renderCelestialLabels(width: CGFloat, height: CGFloat, yaw: Double, pitch: Double) -> some View {
         let moonX = projectX(azimuth: qiblaManager.liveMoonPosition.azimuthDegrees, yaw: yaw, screenWidth: width)
