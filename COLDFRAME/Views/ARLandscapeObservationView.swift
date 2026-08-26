@@ -216,7 +216,6 @@ struct ARLandscapeObservationView: View {
                     renderPeakLabels(width: width, height: height, yaw: effectiveYaw, pitch: effectivePitch)
                     renderCelestialLabels(width: width, height: height, yaw: effectiveYaw, pitch: effectivePitch)
                 }
-                .rotationEffect(.degrees(-motionManager.screenRollDegrees), anchor: .center)
                 .contentShape(Rectangle())
                 // Geste de glissement pour naviguer et calibrer
                 .gesture(
