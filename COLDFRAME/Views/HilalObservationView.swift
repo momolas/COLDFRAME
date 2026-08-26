@@ -7,6 +7,7 @@ import SwiftUI
 
 struct HilalObservationView: View {
     let data: HilalObservationData
+    @State private var isTerrainExpanded: Bool = false
 
     init(data: HilalObservationData) {
         self.data = data
@@ -72,9 +73,34 @@ struct HilalObservationView: View {
                 }
             }
 
-            // Profil altimétrique 3D
+            // Profil altimétrique 3D (Dépliable)
             if let profile = data.terrainProfile {
-                ElevationProfileView(profile: profile)
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isTerrainExpanded.toggle()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "mountain.2")
+                                .foregroundStyle(profile.isObstructed ? .orange : .green)
+                            Text(profile.summaryText)
+                                .font(.caption2)
+                                .bold()
+                                .foregroundStyle(profile.isObstructed ? .orange : .green)
+                            Spacer()
+                            Image(systemName: isTerrainExpanded ? "chevron.up" : "chevron.down")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    if isTerrainExpanded {
+                        ElevationProfileView(profile: profile)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+                }
             } else if !data.isAnalyzingTerrain {
                 HStack(spacing: DesignSystem.Spacing.small) {
                     Image(systemName: "info.circle")

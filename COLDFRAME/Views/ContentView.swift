@@ -36,50 +36,49 @@ struct ContentView: View {
                         .buttonStyle(.borderedProminent)
                 }
             } else {
-                VStack(spacing: DesignSystem.Spacing.large) {
-                    // Titre
-                    VStack(spacing: DesignSystem.Spacing.small) {
-                        Text("COLDFRAME")
-                            .font(.largeTitle.weight(.light))
-                            .fontDesign(.rounded)
-                            .foregroundStyle(qiblaManager.isAligned ? .white : .green)
+                ScrollView {
+                    VStack(spacing: DesignSystem.Spacing.large) {
+                        // Titre
+                        VStack(spacing: DesignSystem.Spacing.small) {
+                            Text("COLDFRAME")
+                                .font(.largeTitle.weight(.light))
+                                .fontDesign(.rounded)
+                                .foregroundStyle(qiblaManager.isAligned ? .white : .green)
 
-                        Text(qiblaManager.islamicDate)
-                            .font(.title3.weight(.medium))
-                            .foregroundStyle(.secondary)
+                            Text(qiblaManager.islamicDate)
+                                .font(.title3.weight(.medium))
+                                .foregroundStyle(.secondary)
 
-                        if !qiblaManager.moonPhaseName.isEmpty {
-                            MoonPhaseView(
-                                moonName: qiblaManager.moonPhaseName,
-                                moonIcon: qiblaManager.moonPhaseIcon,
-                                illumination: qiblaManager.moonIllumination
-                            )
+                            if !qiblaManager.moonPhaseName.isEmpty {
+                                MoonPhaseView(
+                                    moonName: qiblaManager.moonPhaseName,
+                                    moonIcon: qiblaManager.moonPhaseIcon,
+                                    illumination: qiblaManager.moonIllumination
+                                )
+                            }
+                        }
+                        .padding(.top)
+
+                        // Boussole Modernisée (Style Apple)
+                        CompassWidget(qiblaManager: qiblaManager)
+
+                        // Horaires de Prière et Hilal
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
+                            Text("Horaires de Prière")
+                                .font(.title3.weight(.medium))
+                                .foregroundStyle(.secondary)
+                                .padding(.leading)
+
+                            PrayerTimesList(prayers: qiblaManager.prayerTimes, nextPrayer: qiblaManager.nextPrayer)
+
+                            // Tracker d'observation du Hilal / Lune
+                            HilalObservationView(data: qiblaManager.hilalObservation)
+                                .padding(.horizontal)
                         }
                     }
-                    .padding(.top)
-                    
-                    Spacer()
-                    
-                    // Boussole Modernisée (Style Apple)
-                    CompassWidget(qiblaManager: qiblaManager)
-                    
-                    Spacer()
-                    
-                    // Horaires et Hilal
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
-                        Text("Horaires de Prière")
-                            .font(.title3.weight(.medium))
-                            .foregroundStyle(.secondary)
-                            .padding(.leading)
-                        
-                        PrayerTimesList(prayers: qiblaManager.prayerTimes, nextPrayer: qiblaManager.nextPrayer)
-
-                        // Tracker d'observation du Hilal / Lune
-                        HilalObservationView(data: qiblaManager.hilalObservation)
-                            .padding(.horizontal)
-                    }
+                    .padding(.bottom, DesignSystem.Spacing.large)
                 }
-                .padding(.bottom)
+                .scrollIndicators(.hidden)
             }
         }
         .sensoryFeedback(.impact(weight: .medium), trigger: qiblaManager.isAligned) { _, newValue in
