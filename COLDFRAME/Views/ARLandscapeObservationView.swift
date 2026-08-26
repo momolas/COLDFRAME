@@ -388,6 +388,30 @@ struct ARLandscapeObservationView: View {
             }
             .position(x: sunX, y: sunY - 25)
         }
+
+        // Indicateur flottant Qibla (Direction La Mecque)
+        if qiblaManager.qiblaAngle > 0 {
+            let qiblaX = projectX(azimuth: qiblaManager.qiblaAngle, yaw: yaw, screenWidth: width)
+            let qiblaY = projectY(altitude: 0.0, pitch: pitch, screenHeight: height)
+
+            if qiblaX >= -30 && qiblaX <= width + 30 {
+                VStack(spacing: 3) {
+                    Image(systemName: "location.north.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.green)
+                        .shadow(color: .green, radius: 8)
+
+                    Text("QIBLA (\(Int(qiblaManager.qiblaAngle.rounded()))°)")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.green)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(.black.opacity(0.75))
+                        .clipShape(.capsule)
+                }
+                .position(x: qiblaX, y: max(50, min(height - 50, qiblaY - 25)))
+            }
+        }
     }
 
     // MARK: - Ruban de Cap Boussole (Compass Tape)
@@ -435,6 +459,22 @@ struct ARLandscapeObservationView: View {
                     .fill(primaryColor)
                     .frame(width: 2, height: 24)
                     .position(x: ribbonWidth / 2.0, y: 12)
+
+                // Repère Qibla sur le ruban
+                if qiblaManager.qiblaAngle > 0 {
+                    let qiblaRibbonX = projectX(azimuth: qiblaManager.qiblaAngle, yaw: effectiveYaw, screenWidth: ribbonWidth)
+                    if qiblaRibbonX >= 0 && qiblaRibbonX <= ribbonWidth {
+                        VStack(spacing: 1) {
+                            Image(systemName: "location.north.circle.fill")
+                                .font(.system(size: 8))
+                                .foregroundStyle(.green)
+                            Text("Q")
+                                .font(.system(size: 7, weight: .bold))
+                                .foregroundStyle(.green)
+                        }
+                        .position(x: qiblaRibbonX, y: 12)
+                    }
+                }
             }
         }
         .frame(height: 28)

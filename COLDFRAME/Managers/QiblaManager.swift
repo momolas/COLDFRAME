@@ -49,7 +49,8 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = 50 // Optimize: 50 meters throttle to reduce re-renders
-        locationManager.headingFilter = 1   // Optimize: 1 degree throttle to reduce battery usage
+        locationManager.headingFilter = kCLHeadingFilterNone // Précision maximale continue
+        locationManager.headingOrientation = .portrait       // Fixer l'orientation du capteur au sommet de l'appareil
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         locationManager.startUpdatingHeading()
