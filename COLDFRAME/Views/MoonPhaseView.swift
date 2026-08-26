@@ -26,3 +26,8 @@ struct MoonPhaseView: View {
         .clipShape(.rect(cornerRadius: DesignSystem.Layout.cornerRadius))
     }
 }
+
+#Preview {
+	MoonPhaseView(moonName: "Pleine lune", moonIcon: "moon.fill", illumination: 1)
+		.preferredColorScheme(.dark)
+}

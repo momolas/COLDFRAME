@@ -8,6 +8,7 @@
 import Foundation
 import CoreLocation
 import Observation
+import SwiftAA
 
 @MainActor
 @Observable
@@ -122,11 +123,11 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
 
     // MARK: - Calcul Qibla
     private func calculateBearingToMecca(from location: CLLocation) -> Double {
-        let lat1 = location.coordinate.latitude.deg2rad
-        let lon1 = location.coordinate.longitude.deg2rad
+        let lat1 = location.coordinate.latitude * deg2rad
+        let lon1 = location.coordinate.longitude * deg2rad
 
-        let lat2 = meccaCoordinate.latitude.deg2rad
-        let lon2 = meccaCoordinate.longitude.deg2rad
+        let lat2 = meccaCoordinate.latitude * deg2rad
+        let lon2 = meccaCoordinate.longitude * deg2rad
 
         let dLon = lon2 - lon1
 
@@ -136,7 +137,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         let radiansBearing = atan2(y, x)
 
         // Conversion en degrés et normalisation (0 à 360)
-        return (radiansBearing.rad2deg + 360).truncatingRemainder(dividingBy: 360)
+        return (radiansBearing * rad2deg + 360).truncatingRemainder(dividingBy: 360)
     }
 
     // MARK: - Calcul Horaires (SwiftAA)
@@ -172,12 +173,9 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     private func checkAlignment() {
         let diff = abs(qiblaAngle - heading)
         // Tolérance de 2 degrés
-        if diff <= 2.0 || diff >= 358.0 {
-            if !isAligned {
-                isAligned = true
-            }
-        } else {
-            isAligned = false
+        let aligned = diff <= 2.0 || diff >= 358.0
+        if isAligned != aligned {
+            isAligned = aligned
         }
     }
 }
