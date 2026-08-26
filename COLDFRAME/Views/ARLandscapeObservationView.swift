@@ -60,14 +60,12 @@ struct ARLandscapeObservationView: View {
         qiblaManager.isNightVisionMode ? Color.red.opacity(0.9) : Color.orange.opacity(0.9)
     }
 
-    // Cap boussole de base : synchronisé avec le magnétomètre matériel de QiblaManager
+    // Cap boussole de base : priorité au cap caméra optique 3D de MotionManager
     private var baseCompassYaw: Double {
-        if qiblaManager.heading > 0 {
-            return qiblaManager.heading
-        } else if motionManager.yawDegrees > 0 {
+        if motionManager.isTracking {
             return motionManager.yawDegrees
         }
-        return 0.0
+        return qiblaManager.heading
     }
 
     var body: some View {

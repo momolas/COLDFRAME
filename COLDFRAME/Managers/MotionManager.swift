@@ -54,8 +54,14 @@ final class MotionManager {
             let clampedUp = max(-1.0, min(1.0, -matrix.m33))
             let rawPitch = asin(clampedUp) * 180.0 / .pi
 
-            // 2. Cap boussole (Yaw 360°) : combinaison attitude CoreMotion
-            var rawYaw = -motion.attitude.yaw * 180.0 / .pi
+            // 2. Cap boussole optique réel (Yaw 360° invariant sans gimbal lock) :
+            // Dans le repère CoreMotion (+X = Nord, +Y = Ouest, +Z = Zénith) :
+            // Vecteur visée caméra (-Z appareil) = (-m13, -m23, -m33)
+            // Composante Nord = -m13, Composante Est = +m23 (car Est = -Ouest)
+            let northComp = -matrix.m13
+            let eastComp = matrix.m23
+            let yawRad = atan2(eastComp, northComp)
+            var rawYaw = yawRad * 180.0 / .pi
             if rawYaw < 0 { rawYaw += 360.0 }
             rawYaw = rawYaw.truncatingRemainder(dividingBy: 360.0)
 
