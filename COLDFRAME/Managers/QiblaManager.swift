@@ -144,6 +144,9 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
             let (terrain, weather, skylineResult) = await (terrainTask, weatherTask, skylineTask)
 
             liveMoon.skyline = skylineResult.skyline
+            liveMoon.foregroundSkyline = skylineResult.foreground
+            liveMoon.midgroundSkyline = skylineResult.midground
+            liveMoon.backgroundSkyline = skylineResult.background
             liveMoon.peaks = skylineResult.peaks
             self.liveMoonPosition = liveMoon
 
@@ -168,6 +171,9 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
             Task {
                 let skylineResult = await ElevationService.shared.fetchPanoramicSkyline(from: loc)
                 self.liveMoonPosition.skyline = skylineResult.skyline
+                self.liveMoonPosition.foregroundSkyline = skylineResult.foreground
+                self.liveMoonPosition.midgroundSkyline = skylineResult.midground
+                self.liveMoonPosition.backgroundSkyline = skylineResult.background
                 self.liveMoonPosition.peaks = skylineResult.peaks
             }
         }

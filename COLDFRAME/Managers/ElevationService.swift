@@ -250,13 +250,19 @@ actor ElevationService {
         )
     }
 
-    /// Récupère la ligne de crête panoramique (Skyline 360°) et les sommets autour de l'observateur
-    func fetchPanoramicSkyline(from observerLocation: CLLocation) async -> (skyline: [SkylinePoint], peaks: [MountainPeak]) {
+    /// Récupère la ligne de crête panoramique (Skyline 360°) décomposée en 3 plans de profondeur et les sommets
+    func fetchPanoramicSkyline(from observerLocation: CLLocation) async -> (
+        skyline: [SkylinePoint],
+        foreground: [SkylinePoint],
+        midground: [SkylinePoint],
+        background: [SkylinePoint],
+        peaks: [MountainPeak]
+    ) {
         let observerCoord = observerLocation.coordinate
         let observerAlt = observerLocation.altitude > -100 ? observerLocation.altitude : 0.0
 
         // Échantillonnage de 48 directions d'azimut (tous les 7.5° de 0° à 352.5°)
-        // Pour chaque azimut, on vérifie 4 distances progressives (2.5 km, 7 km, 16 km et 30 km) -> 192 points
+        // 4 strates de distance : 2.5 km (avant-plan), 7 km (moyen), 16 km et 30 km (lointain) -> 192 points
         var sampleCoordinates: [(azimuth: Double, distanceKm: Double, coord: CLLocationCoordinate2D)] = []
         let azimuths = stride(from: 0.0, to: 360.0, by: 7.5)
         let distances = [2.5, 7.0, 16.0, 30.0]
@@ -268,13 +274,16 @@ actor ElevationService {
             }
         }
 
-        // Récupération par lots de 50 points pour ne jamais dépasser la limite de l'API
+        // Récupération par lots de 50 points en parallèle
         guard let elevations = await fetchElevationsBatch(coordinates: sampleCoordinates.map(\.coord)),
               elevations.count == sampleCoordinates.count else {
-            return ([], [])
+            return ([], [], [], [], [])
         }
 
         var skylineMap: [Double: (maxAngle: Double, dist: Double, alt: Double)] = [:]
+        var foregroundMap: [Double: (angle: Double, dist: Double, alt: Double)] = [:]
+        var midgroundMap: [Double: (angle: Double, dist: Double, alt: Double)] = [:]
+        var backgroundMap: [Double: (angle: Double, dist: Double, alt: Double)] = [:]
 
         for i in 0..<sampleCoordinates.count {
             let az = sampleCoordinates[i].azimuth
@@ -286,6 +295,22 @@ actor ElevationService {
             let deltaHeightApparent = (elev - observerAlt) - curvatureDrop
             let angleDeg = atan2(deltaHeightApparent, distMeters) * 180.0 / .pi
 
+            // 1. Classification par couche de distance
+            if distKm <= 3.5 {
+                foregroundMap[az] = (angle: max(0.0, angleDeg), dist: distKm, alt: elev)
+            } else if distKm <= 10.0 {
+                midgroundMap[az] = (angle: max(0.0, angleDeg), dist: distKm, alt: elev)
+            } else {
+                if let existingBg = backgroundMap[az] {
+                    if angleDeg > existingBg.angle {
+                        backgroundMap[az] = (angle: max(0.0, angleDeg), dist: distKm, alt: elev)
+                    }
+                } else {
+                    backgroundMap[az] = (angle: max(0.0, angleDeg), dist: distKm, alt: elev)
+                }
+            }
+
+            // 2. Ligne de crête globale maximale
             if let existing = skylineMap[az] {
                 if angleDeg > existing.maxAngle {
                     skylineMap[az] = (maxAngle: angleDeg, dist: distKm, alt: elev)
@@ -295,7 +320,7 @@ actor ElevationService {
             }
         }
 
-        let sortedPoints = skylineMap.keys.sorted().compactMap { az -> SkylinePoint? in
+        let sortedSkyline = skylineMap.keys.sorted().compactMap { az -> SkylinePoint? in
             guard let data = skylineMap[az] else { return nil }
             return SkylinePoint(
                 azimuthDegrees: az,
@@ -305,12 +330,42 @@ actor ElevationService {
             )
         }
 
+        let sortedForeground = foregroundMap.keys.sorted().compactMap { az -> SkylinePoint? in
+            guard let data = foregroundMap[az] else { return nil }
+            return SkylinePoint(
+                azimuthDegrees: az,
+                elevationAngleDegrees: data.angle,
+                distanceKm: data.dist,
+                altitudeMeters: data.alt
+            )
+        }
+
+        let sortedMidground = midgroundMap.keys.sorted().compactMap { az -> SkylinePoint? in
+            guard let data = midgroundMap[az] else { return nil }
+            return SkylinePoint(
+                azimuthDegrees: az,
+                elevationAngleDegrees: data.angle,
+                distanceKm: data.dist,
+                altitudeMeters: data.alt
+            )
+        }
+
+        let sortedBackground = backgroundMap.keys.sorted().compactMap { az -> SkylinePoint? in
+            guard let data = backgroundMap[az] else { return nil }
+            return SkylinePoint(
+                azimuthDegrees: az,
+                elevationAngleDegrees: data.angle,
+                distanceKm: data.dist,
+                altitudeMeters: data.alt
+            )
+        }
+
         var peaks: [MountainPeak] = []
-        if sortedPoints.count >= 3 {
-            for i in 0..<sortedPoints.count {
-                let prev = sortedPoints[(i - 1 + sortedPoints.count) % sortedPoints.count]
-                let curr = sortedPoints[i]
-                let next = sortedPoints[(i + 1) % sortedPoints.count]
+        if sortedSkyline.count >= 3 {
+            for i in 0..<sortedSkyline.count {
+                let prev = sortedSkyline[(i - 1 + sortedSkyline.count) % sortedSkyline.count]
+                let curr = sortedSkyline[i]
+                let next = sortedSkyline[(i + 1) % sortedSkyline.count]
 
                 if curr.elevationAngleDegrees > prev.elevationAngleDegrees &&
                    curr.elevationAngleDegrees > next.elevationAngleDegrees &&
@@ -327,7 +382,7 @@ actor ElevationService {
             }
         }
 
-        return (sortedPoints, peaks)
+        return (sortedSkyline, sortedForeground, sortedMidground, sortedBackground, peaks)
     }
 
     /// Récupère des altitudes en découpant en requêtes batch de 50 coordonnées max (exécutées en parallèle)

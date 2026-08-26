@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Mode d'affichage façon PeakFinder :
-/// - Panorama 3D vectoriel complet (ciel crépusculaire / nuit avec crêtes ombrées)
+/// - Panorama 3D vectoriel complet multi-strates (ciel crépusculaire / nuit avec crêtes étagées ombrées)
 /// - Réalité Augmentée avec superposition caméra en direct
 enum PeakFinderDisplayMode: String, CaseIterable, Identifiable {
     case panorama = "Panorama 3D"
@@ -60,7 +60,7 @@ struct ARLandscapeObservationView: View {
         qiblaManager.isNightVisionMode ? Color.red.opacity(0.9) : Color.orange.opacity(0.9)
     }
 
-    // Cap boussole de base : fusionne le magnétomètre hardware de QiblaManager avec CoreMotion
+    // Cap boussole de base : synchronisé avec le magnétomètre matériel de QiblaManager
     private var baseCompassYaw: Double {
         if qiblaManager.heading > 0 {
             return qiblaManager.heading
@@ -90,10 +90,10 @@ struct ARLandscapeObservationView: View {
                         Color(red: 0.25, green: 0.04, blue: 0.04),
                         Color(red: 0.05, green: 0.0, blue: 0.0)
                     ] : [
-                        Color(red: 0.03, green: 0.06, blue: 0.15),
-                        Color(red: 0.08, green: 0.16, blue: 0.32),
-                        Color(red: 0.20, green: 0.30, blue: 0.45),
-                        Color(red: 0.06, green: 0.11, blue: 0.20)
+                        Color(red: 0.02, green: 0.05, blue: 0.14),
+                        Color(red: 0.07, green: 0.14, blue: 0.30),
+                        Color(red: 0.18, green: 0.28, blue: 0.44),
+                        Color(red: 0.05, green: 0.10, blue: 0.18)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -101,12 +101,11 @@ struct ARLandscapeObservationView: View {
                 .ignoresSafeArea()
             }
 
-            // 2. Calque Graphique Principal (Canvas de Rendu Panoramique 3D)
+            // 2. Calque Graphique Principal (Canvas de Rendu Panoramique Multi-strates 3D)
             GeometryReader { geometry in
                 let width = geometry.size.width
                 let height = geometry.size.height
                 let effectiveYaw = (baseCompassYaw + manualAzimuthOffset).truncatingRemainder(dividingBy: 360.0)
-                // En mode panorama, on amortit le pitch pour garder le relief toujours confortablement cadré
                 let pitchDamping: Double = displayMode == .panorama ? 0.45 : 1.0
                 let effectivePitch = (motionManager.pitchDegrees * pitchDamping) + manualPitchOffset
 
@@ -139,9 +138,9 @@ struct ARLandscapeObservationView: View {
                             }
                         }
 
-                        // B. Relief 3D Panoramique (Silhouette des Montagnes & Crêtes MNT)
+                        // B. Relief 3D Multi-Strates Panoramique (Technique PeakFinder)
                         if qiblaManager.showTerrainSkyline {
-                            drawPeakFinderTerrain(
+                            drawPeakFinderLayeredTerrain(
                                 context: &context,
                                 size: size,
                                 yaw: effectiveYaw,
@@ -264,27 +263,87 @@ struct ARLandscapeObservationView: View {
         }
     }
 
-    // MARK: - Tracé Panoramique Haute Résolution (PeakFinder Vector Landscape)
-    private func drawPeakFinderTerrain(
+    // MARK: - Tracé Multi-Strates Panoramique Vectoriel (PeakFinder Depth Layers)
+    private func drawPeakFinderLayeredTerrain(
         context: inout GraphicsContext,
         size: CGSize,
         yaw: Double,
         pitch: Double
     ) {
-        let rawSkyline = qiblaManager.liveMoonPosition.skyline
+        let live = qiblaManager.liveMoonPosition
 
-        // Construction du profil dense continu (interpolation à haute résolution tous les 2.5°)
-        let activeSkyline: [(az: Double, alt: Double)]
-        if !rawSkyline.isEmpty {
-            activeSkyline = interpolateSkyline(rawSkyline)
+        if displayMode == .panorama {
+            // Plan 3 : Crêtes lointaines (16 - 30 km) - Teinte atmosphérique éthérée
+            let bgPoints = !live.backgroundSkyline.isEmpty ? live.backgroundSkyline : generateFallbackLayer(amplitude: 1.8, freq1: 2.0, freq2: 5.0, phase: 0.4)
+            let bgDense = interpolateSkyline(bgPoints)
+            drawSingleLayer(
+                context: &context,
+                points: bgDense,
+                size: size,
+                yaw: yaw,
+                pitch: pitch,
+                strokeColor: qiblaManager.isNightVisionMode ? Color.red.opacity(0.4) : Color(red: 0.45, green: 0.55, blue: 0.75).opacity(0.6),
+                fillColor: qiblaManager.isNightVisionMode ? Color(red: 0.20, green: 0.04, blue: 0.04).opacity(0.4) : Color(red: 0.12, green: 0.18, blue: 0.30).opacity(0.35),
+                lineWidth: 1.2
+            )
+
+            // Plan 2 : Massif intermédiaire (7 km) - Teinte crépusculaire
+            let midPoints = !live.midgroundSkyline.isEmpty ? live.midgroundSkyline : generateFallbackLayer(amplitude: 1.2, freq1: 3.5, freq2: 7.0, phase: 1.8)
+            let midDense = interpolateSkyline(midPoints)
+            drawSingleLayer(
+                context: &context,
+                points: midDense,
+                size: size,
+                yaw: yaw,
+                pitch: pitch,
+                strokeColor: qiblaManager.isNightVisionMode ? Color.red.opacity(0.65) : Color(red: 0.60, green: 0.70, blue: 0.85).opacity(0.8),
+                fillColor: qiblaManager.isNightVisionMode ? Color(red: 0.15, green: 0.03, blue: 0.03).opacity(0.55) : Color(red: 0.08, green: 0.13, blue: 0.24).opacity(0.50),
+                lineWidth: 1.8
+            )
+
+            // Plan 1 : Avant-plan (2.5 km) - Relief découpé sombre avec ligne de crête lumineuse
+            let fgPoints = !live.foregroundSkyline.isEmpty ? live.foregroundSkyline : generateFallbackLayer(amplitude: 0.8, freq1: 4.0, freq2: 9.0, phase: 3.2)
+            let fgDense = interpolateSkyline(fgPoints)
+            drawSingleLayer(
+                context: &context,
+                points: fgDense,
+                size: size,
+                yaw: yaw,
+                pitch: pitch,
+                strokeColor: ridgeColor,
+                fillColor: qiblaManager.isNightVisionMode ? Color(red: 0.10, green: 0.02, blue: 0.02).opacity(0.85) : Color(red: 0.04, green: 0.07, blue: 0.14).opacity(0.80),
+                lineWidth: 2.6
+            )
         } else {
-            // Silhouette organique de secours immédiate pendant l'acquisition réseau
-            activeSkyline = generateFallbackSkyline()
+            // Mode Caméra RA : Ligne de crête globale nette d'obstruction
+            let rawSkyline = !live.skyline.isEmpty ? live.skyline : generateFallbackLayer(amplitude: 1.4, freq1: 3.0, freq2: 6.0, phase: 1.0)
+            let denseSkyline = interpolateSkyline(rawSkyline)
+            drawSingleLayer(
+                context: &context,
+                points: denseSkyline,
+                size: size,
+                yaw: yaw,
+                pitch: pitch,
+                strokeColor: ridgeColor,
+                fillColor: ridgeColor.opacity(0.18),
+                lineWidth: 2.2
+            )
         }
+    }
 
-        // On projette et trie les points de crêtes visibles dans le champ élargi
+    // Dessine une strate de montagne continue avec lissage par courbes quadratiques
+    private func drawSingleLayer(
+        context: inout GraphicsContext,
+        points: [(az: Double, alt: Double)],
+        size: CGSize,
+        yaw: Double,
+        pitch: Double,
+        strokeColor: Color,
+        fillColor: Color,
+        lineWidth: CGFloat
+    ) {
         var visiblePoints: [(x: CGFloat, y: CGFloat)] = []
-        for pt in activeSkyline {
+        for pt in points {
             let x = projectX(azimuth: pt.az, yaw: yaw, screenWidth: size.width)
             let y = projectY(altitude: pt.alt, pitch: pitch, screenHeight: size.height)
             if x >= -350 && x <= size.width + 350 {
@@ -295,7 +354,6 @@ struct ARLandscapeObservationView: View {
         visiblePoints.sort { $0.x < $1.x }
         guard visiblePoints.count >= 2 else { return }
 
-        // Tracé de la ligne de crête continue ultra-fluide
         var ridgePath = Path()
         ridgePath.move(to: CGPoint(x: visiblePoints[0].x, y: visiblePoints[0].y))
 
@@ -310,26 +368,20 @@ struct ARLandscapeObservationView: View {
             )
         }
 
-        // Ligne de crête lumineuse
-        context.stroke(
-            ridgePath,
-            with: .color(ridgeColor),
-            lineWidth: displayMode == .panorama ? 2.8 : 2.0
-        )
-
-        // Remplissage volumétrique de la montagne jusqu'en bas
+        // 1. Remplissage vers le bas
         if let first = visiblePoints.first, let last = visiblePoints.last {
             var fillPath = ridgePath
-            fillPath.addLine(to: CGPoint(x: max(last.x, size.width + 200), y: size.height + 100))
-            fillPath.addLine(to: CGPoint(x: min(first.x, -200), y: size.height + 100))
+            fillPath.addLine(to: CGPoint(x: max(last.x, size.width + 200), y: size.height + 150))
+            fillPath.addLine(to: CGPoint(x: min(first.x, -200), y: size.height + 150))
             fillPath.closeSubpath()
-
-            let fillOpacity = displayMode == .panorama ? 0.45 : 0.18
-            context.fill(fillPath, with: .color(ridgeColor.opacity(fillOpacity)))
+            context.fill(fillPath, with: .color(fillColor))
         }
+
+        // 2. Ligne de crête
+        context.stroke(ridgePath, with: .color(strokeColor), lineWidth: lineWidth)
     }
 
-    // Interpolation haute résolution pour adoucir le contour du relief
+    // Interpolation Catmull-Rom haute résolution pour subdiviser les 48 points en 180 points lisses
     private func interpolateSkyline(_ points: [SkylinePoint]) -> [(az: Double, alt: Double)] {
         guard points.count >= 4 else {
             return points.map { ($0.azimuthDegrees, $0.elevationAngleDegrees) }
@@ -356,19 +408,24 @@ struct ARLandscapeObservationView: View {
                 midAz = (p1.azimuthDegrees + p2.azimuthDegrees + 360.0) / 2.0
                 if midAz >= 360.0 { midAz -= 360.0 }
             }
-            densePoints.append((midAz, max(0.1, midAlt)))
+            densePoints.append((midAz, max(0.0, midAlt)))
         }
 
         return densePoints.sorted { $0.az < $1.az }
     }
 
-    // Profil de secours esthétique pour assurer un rendu instantané
-    private func generateFallbackSkyline() -> [(az: Double, alt: Double)] {
-        var points: [(az: Double, alt: Double)] = []
-        for az in stride(from: 0.0, to: 360.0, by: 5.0) {
+    // Générateur de strates de secours
+    private func generateFallbackLayer(amplitude: Double, freq1: Double, freq2: Double, phase: Double) -> [SkylinePoint] {
+        var points: [SkylinePoint] = []
+        for az in stride(from: 0.0, to: 360.0, by: 7.5) {
             let rad = az * .pi / 180.0
-            let alt = 1.2 + 0.8 * sin(rad * 3.0) + 0.5 * cos(rad * 5.0 + 1.2)
-            points.append((az: az, alt: max(0.3, alt)))
+            let alt = amplitude + (amplitude * 0.6) * sin(rad * freq1 + phase) + (amplitude * 0.3) * cos(rad * freq2)
+            points.append(SkylinePoint(
+                azimuthDegrees: az,
+                elevationAngleDegrees: max(0.2, alt),
+                distanceKm: 10.0,
+                altitudeMeters: 500.0
+            ))
         }
         return points
     }
@@ -387,13 +444,18 @@ struct ARLandscapeObservationView: View {
                         .fill(ridgeColor.opacity(0.8))
                         .frame(width: 1, height: 16)
 
-                    Text("▲ " + peak.name)
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(.black.opacity(0.75))
-                        .clipShape(.rect(cornerRadius: 3))
+                    HStack(spacing: 3) {
+                        Image(systemName: "triangle.fill")
+                            .font(.system(size: 6))
+                            .foregroundStyle(.orange)
+                        Text(peak.name)
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .background(.black.opacity(0.75))
+                    .clipShape(.rect(cornerRadius: 3))
                 }
                 .position(x: x, y: y - 22)
             }

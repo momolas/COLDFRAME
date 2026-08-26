@@ -87,6 +87,9 @@ nonisolated struct LiveMoonPosition: Sendable, Equatable {
     var illuminatedFraction: Double = 0.0
     var trajectory: [MoonTrajectoryPoint] = []
     var skyline: [SkylinePoint] = []
+    var foregroundSkyline: [SkylinePoint] = []
+    var midgroundSkyline: [SkylinePoint] = []
+    var backgroundSkyline: [SkylinePoint] = []
     var peaks: [MountainPeak] = []
 
     var isAboveHorizon: Bool {
