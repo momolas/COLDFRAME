@@ -16,6 +16,13 @@ struct CompassWidget: View {
         qiblaManager.qiblaAngle.isFinite ? qiblaManager.qiblaAngle : 0
     }
     
+    private var cardinalDirection: String {
+        let normalized = (safeHeading.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
+        let directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"]
+        let index = Int((normalized + 11.25) / 22.5) % 16
+        return directions[index]
+    }
+    
     var body: some View {
         ZStack {
             // Halo de validation arrière-plan
@@ -44,13 +51,40 @@ struct CompassWidget: View {
             }
             .zIndex(2)
             
-            // Degré actuel au centre
-            Text("\(safeHeading.formatted(.number.precision(.fractionLength(0))))°")
-                .font(.system(size: 40, weight: .light))
-                .fontDesign(.rounded)
+            // Affichage numérique central style Apple Boussole avec bascule Vrai Nord / Magnétique
+            VStack(spacing: 3) {
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(safeHeading, format: .number.precision(.fractionLength(0)))
+                        .font(.system(size: 38, weight: .light))
+                        .fontDesign(.rounded)
+                    Text("°")
+                        .font(.system(size: 28, weight: .light))
+                    Text(cardinalDirection)
+                        .font(.system(size: 22, weight: .medium))
+                        .fontDesign(.rounded)
+                        .foregroundStyle(.secondary)
+                }
                 .foregroundStyle(.white)
-                .offset(y: -55)
-                .zIndex(2)
+
+                Button {
+                    qiblaManager.toggleNorthReference()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: qiblaManager.isTrueNorth ? "location.fill" : "safari.fill")
+                            .font(.system(size: 8))
+                        Text(qiblaManager.isTrueNorth ? "VRAI NORD" : "MAGNÉTIQUE")
+                            .font(.system(size: 8, weight: .bold))
+                    }
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 2)
+                    .background(Color.white.opacity(0.12))
+                    .foregroundStyle(qiblaManager.isTrueNorth ? .green : .orange)
+                    .clipShape(.capsule)
+                }
+                .buttonStyle(.plain)
+            }
+            .offset(y: -48)
+            .zIndex(2)
             
             // Cadran et indicateurs Qibla et Lune qui tournent
             ZStack {

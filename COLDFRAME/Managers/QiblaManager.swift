@@ -16,6 +16,9 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
 
     var heading: Double = 0.0
+    var trueHeading: Double = 0.0
+    var magneticHeading: Double = 0.0
+    var isTrueNorth: Bool = true
     var headingAccuracy: Double = -1.0
     var qiblaAngle: Double = 0.0
     var isAligned: Bool = false
@@ -75,6 +78,13 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
 
     func setLandscapeOrientation(_ isLandscape: Bool) {
         locationManager.headingOrientation = isLandscape ? .landscapeLeft : .portrait
+    }
+
+    func toggleNorthReference() {
+        isTrueNorth.toggle()
+        let chosen = (isTrueNorth && trueHeading >= 0) ? trueHeading : magneticHeading
+        self.heading = chosen
+        self.checkAlignment()
     }
 
     private var periodicTask: Task<Void, Never>?
@@ -209,9 +219,13 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
             self.headingAccuracy = newHeading.headingAccuracy
             guard newHeading.headingAccuracy >= 0 else { return }
 
-            // Préférer le Vrai Nord géographique (True North), sinon le Nord Magnétique
-            let h = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
-            self.heading = (h.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
+            self.magneticHeading = (newHeading.magneticHeading.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
+            if newHeading.trueHeading >= 0 {
+                self.trueHeading = (newHeading.trueHeading.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
+            }
+
+            let chosen = (self.isTrueNorth && newHeading.trueHeading >= 0) ? self.trueHeading : self.magneticHeading
+            self.heading = chosen
             self.checkAlignment()
         }
     }
