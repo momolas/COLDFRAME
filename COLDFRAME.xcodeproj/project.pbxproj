@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CDFBCAA72EF352DD006CCBB8 /* AABridge in Frameworks */ = {isa = PBXBuildFile; productRef = CDFBCAA62EF352DD006CCBB8 /* AABridge */; };
-		CDFBCAA92EF352DD006CCBB8 /* AAplus in Frameworks */ = {isa = PBXBuildFile; productRef = CDFBCAA82EF352DD006CCBB8 /* AAplus */; };
 		CDFBCAAB2EF352DD006CCBB8 /* SwiftAA in Frameworks */ = {isa = PBXBuildFile; productRef = CDFBCAAA2EF352DD006CCBB8 /* SwiftAA */; };
 /* End PBXBuildFile section */
 
@@ -43,8 +41,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CDFBCAAB2EF352DD006CCBB8 /* SwiftAA in Frameworks */,
-				CDFBCAA92EF352DD006CCBB8 /* AAplus in Frameworks */,
-				CDFBCAA72EF352DD006CCBB8 /* AABridge in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,8 +83,6 @@
 			);
 			name = COLDFRAME;
 			packageProductDependencies = (
-				CDFBCAA62EF352DD006CCBB8 /* AABridge */,
-				CDFBCAA82EF352DD006CCBB8 /* AAplus */,
 				CDFBCAAA2EF352DD006CCBB8 /* SwiftAA */,
 			);
 			productName = COLDFRAME;
@@ -310,6 +304,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_INTEROP_MODE = "objcxx";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -350,6 +345,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_INTEROP_MODE = "objcxx";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -382,20 +378,15 @@
 /* Begin XCRemoteSwiftPackageReference section */
 		CDFBCAA52EF352DD006CCBB8 /* XCRemoteSwiftPackageReference "SwiftAA" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/onekiloparsec/SwiftAA.git";
+			repositoryURL = "https://github.com/momolas/SwiftAA.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.0.1;
+				branch = master;
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CDFBCAA62EF352DD006CCBB8 /* AABridge */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = CDFBCAA52EF352DD006CCBB8 /* XCRemoteSwiftPackageReference "SwiftAA" */;
-			productName = AABridge;
-		};
 		CDFBCAA82EF352DD006CCBB8 /* AAplus */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CDFBCAA52EF352DD006CCBB8 /* XCRemoteSwiftPackageReference "SwiftAA" */;

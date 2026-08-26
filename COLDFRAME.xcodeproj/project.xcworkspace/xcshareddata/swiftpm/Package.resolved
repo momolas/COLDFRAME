@@ -1,13 +1,13 @@
 {
-  "originHash" : "0ae91fb57689f48b9d649dda8ecf70b4d4f634145677d4e4780e72d96f6ca9fe",
+  "originHash" : "990e7f438c069006afcffbbe7aa4c5aa2319bb061112bc98cb1757f38100091c",
   "pins" : [
     {
       "identity" : "swiftaa",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/onekiloparsec/SwiftAA.git",
+      "location" : "https://github.com/momolas/SwiftAA.git",
       "state" : {
-        "revision" : "050867bd8e9411100d3073047ce95942e2b0aa0d",
-        "version" : "3.0.1"
+        "branch" : "master",
+        "revision" : "ecd18761d74e2f9f3dbeb6b97af5543659ce39cd"
       }
     }
   ],
