@@ -27,7 +27,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     var moonPhaseName: String = ""
     var moonPhaseIcon: String = ""
     var moonIllumination: Double = 0.0
-    var hilalVisibility: HilalVisibility = .notObservationDay
+    var hilalObservation: HilalObservationData = HilalObservationData()
+    var hilalVisibility: HilalVisibility {
+        hilalObservation.visibility
+    }
 
     @ObservationIgnored private var lastCalculationDate: Date?
     @ObservationIgnored private var lastCalculationLocation: CLLocation?
@@ -51,7 +54,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     }
 
     // MARK: - Calendrier Islamique
-    private func updateIslamicDate() async {
+    private func updateIslamicDate(location: CLLocation? = nil) async {
         var format = Date.FormatStyle.dateTime
             .day()
             .month(.wide)
@@ -65,9 +68,28 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         self.moonPhaseIcon = moonData.icon
         self.moonIllumination = moonData.illuminatedFraction
 
-        // La probabilité de voir le Hilal dépend de l'heure du Maghrib ce jour-ci
+        let activeLocation = location ?? self.lastCalculationLocation
         let maghrib = self.prayerTimes.first { $0.name == "Maghrib" }?.date
-        self.hilalVisibility = await AstronomicManager.getHilalVisibility(for: Date(), maghribDate: maghrib, location: self.userLocation)
+        var obsData = await AstronomicManager.getHilalObservation(for: Date(), maghribDate: maghrib, location: activeLocation)
+
+        if let loc = activeLocation {
+            obsData.isAnalyzingTerrain = true
+            self.hilalObservation = obsData
+
+            if let terrain = await ElevationService.shared.fetchTerrainProfile(
+                from: loc,
+                azimuthDegrees: obsData.azimuthDegrees,
+                moonAltitudeDegrees: obsData.moonAltitudeDegrees
+            ) {
+                obsData.terrainProfile = terrain
+                if terrain.isObstructed {
+                    obsData.visibility = .obstructedByTerrain
+                }
+            }
+            obsData.isAnalyzingTerrain = false
+        }
+
+        self.hilalObservation = obsData
     }
 
     // MARK: - CoreLocation Delegate
@@ -116,7 +138,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
 
             if shouldUpdate {
                 await self.calculatePrayersLocally(for: location)
-                await self.updateIslamicDate()
+                await self.updateIslamicDate(location: location)
             }
         }
     }

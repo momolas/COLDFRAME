@@ -74,11 +74,9 @@ struct ContentView: View {
                         
                         PrayerTimesList(prayers: qiblaManager.prayerTimes, nextPrayer: qiblaManager.nextPrayer)
 
-                        // Afficher le Tracker de Hilal uniquement si c'est le jour d'observation
-                        if qiblaManager.hilalVisibility != .notObservationDay {
-                            HilalObservationView(visibility: qiblaManager.hilalVisibility)
-                                .padding(.horizontal)
-                        }
+                        // Tracker d'observation du Hilal / Lune
+                        HilalObservationView(data: qiblaManager.hilalObservation)
+                            .padding(.horizontal)
                     }
                 }
                 .padding(.bottom)

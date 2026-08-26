@@ -95,19 +95,18 @@ class AstronomicManager {
     }
 
     @concurrent
-    static func getHilalVisibility(for date: Date = Date(), maghribDate: Date?, location: CLLocationCoordinate2D?) async -> HilalVisibility {
-        guard let location = location else { return .notObservationDay }
-        
-        // Le Hilal est cherché uniquement le 29 du mois lunaire
-        let islamicCalendar = Calendar(identifier: .islamicUmmAlQura)
-        let day = islamicCalendar.component(.day, from: date)
-        if day != 29 {
-            return .notObservationDay
+    static func getHilalObservation(
+        for date: Date = Date(),
+        maghribDate: Date?,
+        location: CLLocation?
+    ) async -> HilalObservationData {
+        guard let location = location else {
+            return HilalObservationData(visibility: .impossible)
         }
         
         let geo = GeographicCoordinates(
-            positivelyWestwardLongitude: Degree(-location.longitude),
-            latitude: Degree(location.latitude)
+            positivelyWestwardLongitude: Degree(-location.coordinate.longitude),
+            latitude: Degree(location.coordinate.latitude)
         )
         
         // Utiliser l'heure du maghrib si disponible, sinon l'heure courante
@@ -116,20 +115,48 @@ class AstronomicManager {
         let sun = Sun(julianDay: jd)
         
         let elongation = moon.equatorialCoordinates.angularSeparation(with: sun.equatorialCoordinates)
-        // La méthode attend désormais explicitement 'with:' comme seul argument
         let horizontal = moon.makeHorizontalCoordinates(with: geo)
         
-        let moonAltitude = horizontal.altitude.value
+        // Prise en compte de l'altitude de l'observateur et de la dépression d'horizon (dip)
+        let observerAlt = location.altitude > -100 ? location.altitude : 0.0
+        let horizonDip = 0.0293 * sqrt(max(0.0, observerAlt))
+        let moonAltitude = horizontal.altitude.value + horizonDip
+        
+        // Azimut converti en cap boussole conventionnel (0° = Nord, 90° = Est, 180° = Sud, 270° = Ouest)
+        let astronomicalAzimuth = horizontal.azimuth.value
+        let compassAzimuth = (astronomicalAzimuth + 180.0).truncatingRemainder(dividingBy: 360.0)
         
         // Calcul de l'âge de la lune en heures
         let lastNewMoon = moon.time(of: .newMoon, forward: false)
         let ageInDays = moon.julianDay.value - lastNewMoon.value
         let ageInHours = ageInDays * 24.0
 
+        let baseVisibility: HilalVisibility
         if ageInHours < 15.0 || elongation.value < 8.0 || moonAltitude <= 0.0 {
-            return .impossible
+            baseVisibility = .impossible
+        } else if ageInHours < 24.0 || elongation.value < 10.0 || moonAltitude < 5.0 {
+            baseVisibility = .difficult
+        } else {
+            baseVisibility = .visible
         }
 
-        return (ageInHours < 24.0 || elongation.value < 10.0 || moonAltitude < 5.0) ? .difficult : .visible
+        return HilalObservationData(
+            visibility: baseVisibility,
+            azimuthDegrees: compassAzimuth,
+            moonAltitudeDegrees: moonAltitude,
+            moonAgeHours: ageInHours,
+            elongationDegrees: elongation.value,
+            observerAltitudeMeters: observerAlt,
+            terrainProfile: nil,
+            isAnalyzingTerrain: false
+        )
+    }
+
+    @concurrent
+    static func getHilalVisibility(for date: Date = Date(), maghribDate: Date?, location: CLLocationCoordinate2D?) async -> HilalVisibility {
+        guard let location = location else { return .notObservationDay }
+        let clLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+        let data = await getHilalObservation(for: date, maghribDate: maghribDate, location: clLocation)
+        return data.visibility
     }
 }
