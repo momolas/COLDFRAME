@@ -32,17 +32,21 @@ class NotificationManager {
 	}
 	
 	func scheduleNotification(for prayer: PrayerTime) {
-		let content = UNMutableNotificationContent()
-		content.title = "Heure de la prière"
-		content.body = "C'est l'heure de \(prayer.name)."
-		// Utilisation du son par défaut car 'adhan.mp3' est manquant
-		content.sound = .default
-		
-		let dateComponents = Calendar.current.dateComponents([.hour, .minute], from: prayer.date)
-		let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
-		let request = UNNotificationRequest(identifier: prayer.name, content: content, trigger: trigger)
-		
 		Task {
+			let settings = await UNUserNotificationCenter.current().notificationSettings()
+			guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else {
+				return // Ne pas tenter de programmer si l'utilisateur a refusé ou n'a pas autorisé les notifications
+			}
+
+			let content = UNMutableNotificationContent()
+			content.title = "Heure de la prière"
+			content.body = "C'est l'heure de \(prayer.name)."
+			content.sound = .default
+			
+			let dateComponents = Calendar.current.dateComponents([.hour, .minute], from: prayer.date)
+			let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+			let request = UNNotificationRequest(identifier: prayer.name, content: content, trigger: trigger)
+			
 			do {
 				try await UNUserNotificationCenter.current().add(request)
 			} catch {
