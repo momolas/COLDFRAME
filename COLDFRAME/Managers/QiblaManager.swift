@@ -33,6 +33,10 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
     }
     var liveMoonPosition: LiveMoonPosition = LiveMoonPosition()
 
+    // Options de terrain et observation AR
+    var isNightVisionMode: Bool = false
+    var showOpticalReticle: Bool = true
+
     @ObservationIgnored private var lastCalculationDate: Date?
     @ObservationIgnored private var lastCalculationLocation: CLLocation?
 
@@ -64,7 +68,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         }
     }
 
-    // MARK: - Calendrier Islamique
+    // MARK: - Calendrier Islamique & Hilal
     private func updateIslamicDate(location: CLLocation? = nil) async {
         var format = Date.FormatStyle.dateTime
             .day()
@@ -86,13 +90,26 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         if let loc = activeLocation {
             self.liveMoonPosition = await AstronomicManager.getLiveMoonPosition(for: Date(), location: loc)
             obsData.isAnalyzingTerrain = true
+            obsData.isFetchingWeather = true
             self.hilalObservation = obsData
 
-            if let terrain = await ElevationService.shared.fetchTerrainProfile(
+            // Fetch météo crépusculaire en tâche asynchrone
+            async let terrainTask = ElevationService.shared.fetchTerrainProfile(
                 from: loc,
                 azimuthDegrees: obsData.azimuthDegrees,
                 moonAltitudeDegrees: obsData.moonAltitudeDegrees
-            ) {
+            )
+            async let weatherTask = WeatherService.shared.fetchObservationWeather(
+                for: loc.coordinate,
+                targetTime: obsData.bestObservationTime ?? maghrib ?? Date()
+            )
+
+            let (terrain, weather) = await (terrainTask, weatherTask)
+
+            obsData.weatherConditions = weather
+            obsData.isFetchingWeather = false
+
+            if let terrain = terrain {
                 obsData.terrainProfile = terrain
                 if terrain.isObstructed {
                     obsData.visibility = .obstructedByTerrain
@@ -129,7 +146,6 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
             self.qiblaAngle = self.calculateBearingToMecca(from: location)
 
             // 2. Calcul Horaires via SwiftAA (appel au AstronomicManager)
-            // On évite de recalculer trop souvent
             let shouldUpdate: Bool = {
                 if self.prayerTimes.isEmpty { return true }
 
@@ -178,7 +194,6 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
 
     // MARK: - Calcul Horaires (SwiftAA)
     func calculatePrayersLocally(for location: CLLocation) async {
-        // On délègue le travail astronomique complexe à notre Manager dédié
         let calculatedTimes = await AstronomicManager.getSolarData(for: location)
 
         self.prayerTimes = calculatedTimes
@@ -196,11 +211,9 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
 
     private func updateNextPrayer() {
         let now = Date()
-        // Trouver la première prière dont la date est future
         if let next = prayerTimes.first(where: { $0.date > now }) {
             self.nextPrayer = next
         } else {
-            // Si toutes sont passées, la prochaine est Fajr demain (non géré ici pour l'instant, ou on pourrait garder nil)
             self.nextPrayer = nil
         }
     }

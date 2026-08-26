@@ -2,12 +2,15 @@
 //  HilalObservationView.swift
 //  COLDFRAME
 //
+//  Created by Mo on 26/08/2026.
+//
 
 import SwiftUI
 
 struct HilalObservationView: View {
     let data: HilalObservationData
     @State private var isTerrainExpanded: Bool = false
+    @State private var isScientificExpanded: Bool = false
 
     init(data: HilalObservationData) {
         self.data = data
@@ -19,29 +22,58 @@ struct HilalObservationView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.medium) {
-            // En-tête
-            HStack(spacing: DesignSystem.Spacing.small) {
-                if data.isAnalyzingTerrain {
+            // Statut principal & Badge Yallop
+            HStack(spacing: DesignSystem.Spacing.medium) {
+                Image(systemName: data.visibility.icon)
+                    .font(.title2)
+                    .foregroundStyle(data.visibility.color)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(data.visibility.rawValue)
+                        .font(.footnote)
+                        .bold()
+                        .foregroundStyle(.white.opacity(0.95))
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    if data.yallopZone != "F" && data.visibility != .notObservationDay {
+                        Text("Critère Yallop : Zone \(data.yallopZone) (q = \(data.yallopQValue.formatted(.number.precision(.fractionLength(2)))))")
+                            .font(.caption2)
+                            .foregroundStyle(.cyan.opacity(0.9))
+                    }
+                }
+
+                Spacer()
+
+                if data.isAnalyzingTerrain || data.isFetchingWeather {
                     ProgressView()
                         .controlSize(.mini)
                 }
             }
 
-            // Statut principal
-            HStack(spacing: DesignSystem.Spacing.medium) {
-                Image(systemName: data.visibility.icon)
-                    .font(.title)
-                    .foregroundStyle(data.visibility.color)
+            // Ligne 1 : Fenêtre d'Observation Optimale & Moon Lag
+            if data.moonLagMinutes > 0 || data.bestObservationTime != nil {
+                HStack(spacing: DesignSystem.Spacing.small) {
+                    HilalMetricBadge(
+                        title: "Heure Optimale",
+                        value: data.formattedBestObservationTime,
+                        icon: "clock.badge.checkmark"
+                    )
 
-                Text(data.visibility.rawValue)
-                    .font(.footnote)
-                    .foregroundStyle(.white.opacity(0.9))
-                    .fixedSize(horizontal: false, vertical: true)
+                    HilalMetricBadge(
+                        title: "Moon Lag (Retard)",
+                        value: "\(Int(data.moonLagMinutes.rounded())) min",
+                        icon: "timer"
+                    )
 
-                Spacer()
+                    HilalMetricBadge(
+                        title: "Élongation",
+                        value: "\(data.elongationDegrees.formatted(.number.precision(.fractionLength(1))))°",
+                        icon: "arrow.left.and.right"
+                    )
+                }
             }
 
-            // Données d'orientation (Azimut, Altitude Lune, Altitude Observateur)
+            // Ligne 2 : Orientation & Position (Azimut, Altitude Lune, Altitude Observateur)
             if data.azimuthDegrees > 0 {
                 HStack(spacing: DesignSystem.Spacing.small) {
                     HilalMetricBadge(
@@ -62,6 +94,24 @@ struct HilalObservationView: View {
                         icon: "mountain.2.fill"
                     )
                 }
+            }
+
+            // Ligne 3 : Conditions Météo Crépusculaires
+            if let weather = data.weatherConditions {
+                HStack(spacing: DesignSystem.Spacing.small) {
+                    Image(systemName: weather.seeingIcon)
+                        .font(.caption)
+                        .foregroundStyle(weather.seeingScore >= 70 ? .green : (weather.seeingScore >= 40 ? .orange : .red))
+
+                    Text("Clarté ciel : \(weather.seeingScore)% (\(weather.seeingDescription)) • Nuages : \(weather.cloudCoverTotalPercent)%")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.85))
+
+                    Spacer()
+                }
+                .padding(8)
+                .background(.black.opacity(0.25))
+                .clipShape(.rect(cornerRadius: 6))
             }
 
             // Profil altimétrique 3D (Dépliable)
@@ -94,20 +144,88 @@ struct HilalObservationView: View {
                             .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
-            } else if !data.isAnalyzingTerrain {
-                HStack(spacing: DesignSystem.Spacing.small) {
-                    Image(systemName: "info.circle")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                    Text("Privilégiez un point d'observation en hauteur face à l'Ouest.")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+            }
+
+            // Volet dépliable : Données astronomiques scientifiques
+            if data.crescentWidthArcminutes > 0 {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isScientificExpanded.toggle()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "function")
+                                .foregroundStyle(.cyan)
+                            Text("Détails scientifiques (Yallop / ARCV / W)")
+                                .font(.caption2)
+                                .bold()
+                                .foregroundStyle(.cyan)
+                            Spacer()
+                            Image(systemName: isScientificExpanded ? "chevron.up" : "chevron.down")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    if isScientificExpanded {
+                        ScientificDetailsGrid(data: data)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
                 }
             }
         }
         .padding(DesignSystem.Spacing.normal)
         .background(.thinMaterial)
         .clipShape(.rect(cornerRadius: DesignSystem.Layout.cornerRadius))
+    }
+}
+
+private struct ScientificDetailsGrid: View {
+    let data: HilalObservationData
+
+    var body: some View {
+        Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
+            GridRow {
+                Text("Arc of Vision (ARCV):")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text("\(data.arcOfVisionDegrees.formatted(.number.precision(.fractionLength(2))))°")
+                    .font(.caption2)
+                    .bold()
+                    .foregroundStyle(.white)
+
+                Text("Diff. Azimut (DAZ):")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text("\(data.azimuthDifferenceDegrees.formatted(.number.precision(.fractionLength(2))))°")
+                    .font(.caption2)
+                    .bold()
+                    .foregroundStyle(.white)
+            }
+
+            GridRow {
+                Text("Largeur croissant (W):")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text("\(data.crescentWidthArcminutes.formatted(.number.precision(.fractionLength(2))))'")
+                    .font(.caption2)
+                    .bold()
+                    .foregroundStyle(.white)
+
+                Text("Âge de la Lune:")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text("\(data.moonAgeHours.formatted(.number.precision(.fractionLength(1)))) h")
+                    .font(.caption2)
+                    .bold()
+                    .foregroundStyle(.white)
+            }
+        }
+        .padding(8)
+        .background(.black.opacity(0.3))
+        .clipShape(.rect(cornerRadius: 6))
     }
 }
 
