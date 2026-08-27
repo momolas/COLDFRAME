@@ -109,7 +109,7 @@ struct ARLandscapeObservationView: View {
                         // A. Échelle d'Élévation Graticule (-10°, 0°, +10°, +20°, +30°)
                         let elevationSteps = [-10.0, 0.0, 10.0, 20.0, 30.0, 45.0]
                         for alt in elevationSteps {
-                            let y = projectY(altitude: alt, pitch: effectivePitch, screenHeight: size.height)
+                            let y = projectY(altitude: alt, pitch: effectivePitch, fovVertical: fovVertical, screenHeight: size.height)
                             if y >= -20 && y <= size.height + 20 {
                                 var gridLine = Path()
                                 gridLine.move(to: CGPoint(x: 0, y: y))
@@ -150,8 +150,8 @@ struct ARLandscapeObservationView: View {
                             var arcStarted = false
 
                             for pt in trajectory {
-                                let x = projectX(azimuth: pt.azimuthDegrees, yaw: effectiveYaw, screenWidth: size.width)
-                                let y = projectY(altitude: pt.altitudeDegrees, pitch: effectivePitch, screenHeight: size.height)
+                                let x = projectX(azimuth: pt.azimuthDegrees, yaw: effectiveYaw, fovHorizontal: fovHorizontal, screenWidth: size.width)
+                                let y = projectY(altitude: pt.altitudeDegrees, pitch: effectivePitch, fovVertical: fovVertical, screenHeight: size.height)
 
                                 if !arcStarted {
                                     arcPath.move(to: CGPoint(x: x, y: y))
@@ -171,8 +171,8 @@ struct ARLandscapeObservationView: View {
                         // D. Disque Solaire
                         let sunAz = qiblaManager.liveMoonPosition.sunAzimuthDegrees
                         let sunAlt = qiblaManager.liveMoonPosition.sunAltitudeDegrees
-                        let sunX = projectX(azimuth: sunAz, yaw: effectiveYaw, screenWidth: size.width)
-                        let sunY = projectY(altitude: sunAlt, pitch: effectivePitch, screenHeight: size.height)
+                        let sunX = projectX(azimuth: sunAz, yaw: effectiveYaw, fovHorizontal: fovHorizontal, screenWidth: size.width)
+                        let sunY = projectY(altitude: sunAlt, pitch: effectivePitch, fovVertical: fovVertical, screenHeight: size.height)
 
                         if isPointInScreen(x: sunX, y: sunY, width: size.width, height: size.height) {
                             let sunRect = CGRect(x: sunX - 18, y: sunY - 18, width: 36, height: 36)
@@ -183,8 +183,8 @@ struct ARLandscapeObservationView: View {
                         // E. Disque Lunaire & Réticule Jumelles
                         let moonAz = qiblaManager.liveMoonPosition.azimuthDegrees
                         let moonAlt = qiblaManager.liveMoonPosition.altitudeDegrees
-                        let moonX = projectX(azimuth: moonAz, yaw: effectiveYaw, screenWidth: size.width)
-                        let moonY = projectY(altitude: moonAlt, pitch: effectivePitch, screenHeight: size.height)
+                        let moonX = projectX(azimuth: moonAz, yaw: effectiveYaw, fovHorizontal: fovHorizontal, screenWidth: size.width)
+                        let moonY = projectY(altitude: moonAlt, pitch: effectivePitch, fovVertical: fovVertical, screenHeight: size.height)
 
                         if isPointInScreen(x: moonX, y: moonY, width: size.width, height: size.height) {
                             let moonHalo = CGRect(x: moonX - 22, y: moonY - 22, width: 44, height: 44)
@@ -217,8 +217,31 @@ struct ARLandscapeObservationView: View {
                     }
 
                     // 3. Éléments SwiftUI interactifs : Étiquettes de Sommets & Objets Célestes
-                    renderPeakLabels(width: width, height: height, yaw: effectiveYaw, pitch: effectivePitch)
-                    renderCelestialLabels(width: width, height: height, yaw: effectiveYaw, pitch: effectivePitch)
+                    ARPeakLabelsOverlay(
+                        peaks: qiblaManager.liveMoonPosition.peaks,
+                        width: width,
+                        height: height,
+                        yaw: effectiveYaw,
+                        pitch: effectivePitch,
+                        fovHorizontal: fovHorizontal,
+                        fovVertical: fovVertical,
+                        ridgeColor: ridgeColor
+                    )
+
+                    ARCelestialLabelsOverlay(
+                        liveMoonPosition: qiblaManager.liveMoonPosition,
+                        qiblaAngle: qiblaManager.qiblaAngle,
+                        showOpticalReticle: qiblaManager.showOpticalReticle,
+                        width: width,
+                        height: height,
+                        yaw: effectiveYaw,
+                        pitch: effectivePitch,
+                        fovHorizontal: fovHorizontal,
+                        fovVertical: fovVertical,
+                        primaryColor: primaryColor,
+                        secondaryColor: secondaryColor,
+                        accentSunColor: accentSunColor
+                    )
                 }
                 .contentShape(Rectangle())
                 // Geste de glissement pour naviguer et calibrer
@@ -235,18 +258,37 @@ struct ARLandscapeObservationView: View {
 
             // 4. Ruban de Boussole Supérieur (Style PeakFinder Ribbon)
             VStack {
-                renderCompassRibbon()
-                    .padding(.top, 4)
+                ARCompassRibbonView(
+                    baseCompassYaw: baseCompassYaw,
+                    manualAzimuthOffset: manualAzimuthOffset,
+                    fovHorizontal: fovHorizontal,
+                    qiblaAngle: qiblaManager.qiblaAngle,
+                    primaryColor: primaryColor
+                )
+                .padding(.top, 4)
 
                 // Barre de commandes supérieure
-                renderTopControlBar()
-                    .padding(.horizontal)
-                    .padding(.top, 4)
+                ARTopControlBar(
+                    displayMode: $displayMode,
+                    qiblaManager: qiblaManager,
+                    motionManager: motionManager,
+                    manualAzimuthOffset: $manualAzimuthOffset,
+                    manualPitchOffset: $manualPitchOffset,
+                    baseCompassYaw: baseCompassYaw,
+                    primaryColor: primaryColor,
+                    secondaryColor: secondaryColor
+                )
+                .padding(.horizontal)
+                .padding(.top, 4)
 
                 Spacer()
 
                 // 5. Bandeau inférieur d'information et guidage
-                renderBottomHUD()
+                ARBottomHUDView(
+                    qiblaManager: qiblaManager,
+                    primaryColor: primaryColor,
+                    secondaryColor: secondaryColor
+                )
             }
         }
         .onAppear {
@@ -339,8 +381,8 @@ struct ARLandscapeObservationView: View {
     ) {
         var visiblePoints: [(x: CGFloat, y: CGFloat)] = []
         for pt in points {
-            let x = projectX(azimuth: pt.az, yaw: yaw, screenWidth: size.width)
-            let y = projectY(altitude: pt.alt, pitch: pitch, screenHeight: size.height)
+            let x = projectX(azimuth: pt.az, yaw: yaw, fovHorizontal: fovHorizontal, screenWidth: size.width)
+            let y = projectY(altitude: pt.alt, pitch: pitch, fovVertical: fovVertical, screenHeight: size.height)
             if x >= -350 && x <= size.width + 350 {
                 visiblePoints.append((x, y))
             }
@@ -424,13 +466,24 @@ struct ARLandscapeObservationView: View {
         }
         return points
     }
+}
 
-    // MARK: - Rendu des Étiquettes de Sommets
-    @ViewBuilder
-    private func renderPeakLabels(width: CGFloat, height: CGFloat, yaw: Double, pitch: Double) -> some View {
-        ForEach(qiblaManager.liveMoonPosition.peaks) { peak in
-            let x = projectX(azimuth: peak.azimuthDegrees, yaw: yaw, screenWidth: width)
-            let y = projectY(altitude: peak.elevationAngleDegrees, pitch: pitch, screenHeight: height)
+// MARK: - Sous-Vues Structurées (SwiftUI Pro Components)
+
+private struct ARPeakLabelsOverlay: View {
+    let peaks: [MountainPeak]
+    let width: CGFloat
+    let height: CGFloat
+    let yaw: Double
+    let pitch: Double
+    let fovHorizontal: Double
+    let fovVertical: Double
+    let ridgeColor: Color
+
+    var body: some View {
+        ForEach(peaks) { peak in
+            let x = projectX(azimuth: peak.azimuthDegrees, yaw: yaw, fovHorizontal: fovHorizontal, screenWidth: width)
+            let y = projectY(altitude: peak.elevationAngleDegrees, pitch: pitch, fovVertical: fovVertical, screenHeight: height)
 
             if isPointInScreen(x: x, y: y, width: width, height: height) {
                 VStack(spacing: 2) {
@@ -456,12 +509,25 @@ struct ARLandscapeObservationView: View {
             }
         }
     }
+}
 
-    // MARK: - Rendu des Étiquettes Célestes (Lune, Soleil & Qibla)
-    @ViewBuilder
-    private func renderCelestialLabels(width: CGFloat, height: CGFloat, yaw: Double, pitch: Double) -> some View {
-        let moonX = projectX(azimuth: qiblaManager.liveMoonPosition.azimuthDegrees, yaw: yaw, screenWidth: width)
-        let moonY = projectY(altitude: qiblaManager.liveMoonPosition.altitudeDegrees, pitch: pitch, screenHeight: height)
+private struct ARCelestialLabelsOverlay: View {
+    let liveMoonPosition: LiveMoonPosition
+    let qiblaAngle: Double
+    let showOpticalReticle: Bool
+    let width: CGFloat
+    let height: CGFloat
+    let yaw: Double
+    let pitch: Double
+    let fovHorizontal: Double
+    let fovVertical: Double
+    let primaryColor: Color
+    let secondaryColor: Color
+    let accentSunColor: Color
+
+    var body: some View {
+        let moonX = projectX(azimuth: liveMoonPosition.azimuthDegrees, yaw: yaw, fovHorizontal: fovHorizontal, screenWidth: width)
+        let moonY = projectY(altitude: liveMoonPosition.altitudeDegrees, pitch: pitch, fovVertical: fovVertical, screenHeight: height)
 
         if isPointInScreen(x: moonX, y: moonY, width: width, height: height) {
             VStack(spacing: 2) {
@@ -470,7 +536,7 @@ struct ARLandscapeObservationView: View {
                     .foregroundStyle(primaryColor)
                     .shadow(color: primaryColor, radius: 8)
 
-                Text("Lune (\(qiblaManager.liveMoonPosition.formattedAltitude))")
+                Text("Lune (\(liveMoonPosition.formattedAltitude))")
                     .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(secondaryColor)
                     .padding(.horizontal, 6)
@@ -478,7 +544,7 @@ struct ARLandscapeObservationView: View {
                     .background(.black.opacity(0.7))
                     .clipShape(.capsule)
 
-                if qiblaManager.showOpticalReticle {
+                if showOpticalReticle {
                     Text("FOV Jumelles 7x50 (7°)")
                         .font(.system(size: 8, weight: .medium))
                         .foregroundStyle(primaryColor)
@@ -487,8 +553,8 @@ struct ARLandscapeObservationView: View {
             .position(x: moonX, y: moonY - 34)
         }
 
-        let sunX = projectX(azimuth: qiblaManager.liveMoonPosition.sunAzimuthDegrees, yaw: yaw, screenWidth: width)
-        let sunY = projectY(altitude: qiblaManager.liveMoonPosition.sunAltitudeDegrees, pitch: pitch, screenHeight: height)
+        let sunX = projectX(azimuth: liveMoonPosition.sunAzimuthDegrees, yaw: yaw, fovHorizontal: fovHorizontal, screenWidth: width)
+        let sunY = projectY(altitude: liveMoonPosition.sunAltitudeDegrees, pitch: pitch, fovVertical: fovVertical, screenHeight: height)
 
         if isPointInScreen(x: sunX, y: sunY, width: width, height: height) {
             VStack(spacing: 2) {
@@ -505,9 +571,9 @@ struct ARLandscapeObservationView: View {
         }
 
         // Indicateur flottant Qibla (Direction La Mecque)
-        if qiblaManager.qiblaAngle > 0 {
-            let qiblaX = projectX(azimuth: qiblaManager.qiblaAngle, yaw: yaw, screenWidth: width)
-            let qiblaY = projectY(altitude: 0.0, pitch: pitch, screenHeight: height)
+        if qiblaAngle > 0 {
+            let qiblaX = projectX(azimuth: qiblaAngle, yaw: yaw, fovHorizontal: fovHorizontal, screenWidth: width)
+            let qiblaY = projectY(altitude: 0.0, pitch: pitch, fovVertical: fovVertical, screenHeight: height)
 
             if qiblaX >= -30 && qiblaX <= width + 30 {
                 VStack(spacing: 3) {
@@ -516,7 +582,7 @@ struct ARLandscapeObservationView: View {
                         .foregroundStyle(.green)
                         .shadow(color: .green, radius: 8)
 
-                    Text("QIBLA (\(Int(qiblaManager.qiblaAngle.rounded()))°)")
+                    Text("QIBLA (\(Int(qiblaAngle.rounded()))°)")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(.green)
                         .padding(.horizontal, 6)
@@ -528,9 +594,16 @@ struct ARLandscapeObservationView: View {
             }
         }
     }
+}
 
-    // MARK: - Ruban de Cap Boussole (Compass Tape)
-    private func renderCompassRibbon() -> some View {
+private struct ARCompassRibbonView: View {
+    let baseCompassYaw: Double
+    let manualAzimuthOffset: Double
+    let fovHorizontal: Double
+    let qiblaAngle: Double
+    let primaryColor: Color
+
+    var body: some View {
         GeometryReader { ribbonGeo in
             let ribbonWidth = ribbonGeo.size.width
             let effectiveYaw = (baseCompassYaw + manualAzimuthOffset).truncatingRemainder(dividingBy: 360.0)
@@ -539,7 +612,7 @@ struct ARLandscapeObservationView: View {
                 // Ticks gradués tous les 5°
                 ForEach(0..<72, id: \.self) { index in
                     let angle = Double(index * 5)
-                    let x = projectX(azimuth: angle, yaw: effectiveYaw, screenWidth: ribbonWidth)
+                    let x = projectX(azimuth: angle, yaw: effectiveYaw, fovHorizontal: fovHorizontal, screenWidth: ribbonWidth)
 
                     if x >= 0 && x <= ribbonWidth {
                         let isCardinal = (index % 18 == 0) // N, E, S, W
@@ -576,8 +649,8 @@ struct ARLandscapeObservationView: View {
                     .position(x: ribbonWidth / 2.0, y: 12)
 
                 // Repère Qibla sur le ruban
-                if qiblaManager.qiblaAngle > 0 {
-                    let qiblaRibbonX = projectX(azimuth: qiblaManager.qiblaAngle, yaw: effectiveYaw, screenWidth: ribbonWidth)
+                if qiblaAngle > 0 {
+                    let qiblaRibbonX = projectX(azimuth: qiblaAngle, yaw: effectiveYaw, fovHorizontal: fovHorizontal, screenWidth: ribbonWidth)
                     if qiblaRibbonX >= 0 && qiblaRibbonX <= ribbonWidth {
                         VStack(spacing: 1) {
                             Image(systemName: "location.north.circle.fill")
@@ -597,9 +670,19 @@ struct ARLandscapeObservationView: View {
         .clipShape(.rect(cornerRadius: 6))
         .padding(.horizontal, 40)
     }
+}
 
-    // MARK: - Barre de Commandes Supérieure
-    private func renderTopControlBar() -> some View {
+private struct ARTopControlBar: View {
+    @Binding var displayMode: PeakFinderDisplayMode
+    var qiblaManager: QiblaManager
+    var motionManager: MotionManager
+    @Binding var manualAzimuthOffset: Double
+    @Binding var manualPitchOffset: Double
+    let baseCompassYaw: Double
+    let primaryColor: Color
+    let secondaryColor: Color
+
+    var body: some View {
         HStack(spacing: DesignSystem.Spacing.small) {
             // Sélecteur de Mode (Panorama 3D / Caméra RA)
             Picker("Mode", selection: $displayMode) {
@@ -698,9 +781,14 @@ struct ARLandscapeObservationView: View {
             .clipShape(.capsule)
         }
     }
+}
 
-    // MARK: - Bandeau Inférieur HUD
-    private func renderBottomHUD() -> some View {
+private struct ARBottomHUDView: View {
+    var qiblaManager: QiblaManager
+    let primaryColor: Color
+    let secondaryColor: Color
+
+    var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Lune : \(qiblaManager.liveMoonPosition.formattedAzimuth) • Élévation \(qiblaManager.liveMoonPosition.formattedAltitude)")
@@ -732,46 +820,47 @@ struct ARLandscapeObservationView: View {
         .padding(.horizontal)
         .padding(.bottom, 10)
     }
+}
 
-    // MARK: - Projection Perspective Optique Réelle (Pinhole Lens Model)
-    private func projectX(azimuth: Double, yaw: Double, screenWidth: CGFloat) -> CGFloat {
-        var diff = azimuth - yaw
-        while diff > 180.0 { diff -= 360.0 }
-        while diff < -180.0 { diff += 360.0 }
-        guard abs(diff) < 85.0 else { return diff > 0 ? screenWidth + 500 : -500 }
+// MARK: - Fonctions Utilitaires de Projection
 
-        let diffRad = diff * .pi / 180.0
-        let halfFovRad = (fovHorizontal / 2.0) * .pi / 180.0
-        let normalized = tan(diffRad) / tan(halfFovRad)
-        return (screenWidth / 2.0) + CGFloat(normalized) * (screenWidth / 2.0)
-    }
+private func projectX(azimuth: Double, yaw: Double, fovHorizontal: Double, screenWidth: CGFloat) -> CGFloat {
+    var diff = azimuth - yaw
+    while diff > 180.0 { diff -= 360.0 }
+    while diff < -180.0 { diff += 360.0 }
+    guard abs(diff) < 85.0 else { return diff > 0 ? screenWidth + 500 : -500 }
 
-    private func projectY(altitude: Double, pitch: Double, screenHeight: CGFloat) -> CGFloat {
-        let diff = altitude - pitch
-        guard abs(diff) < 85.0 else { return diff > 0 ? -500 : screenHeight + 500 }
+    let diffRad = diff * .pi / 180.0
+    let halfFovRad = (fovHorizontal / 2.0) * .pi / 180.0
+    let normalized = tan(diffRad) / tan(halfFovRad)
+    return (screenWidth / 2.0) + CGFloat(normalized) * (screenWidth / 2.0)
+}
 
-        let diffRad = diff * .pi / 180.0
-        let halfFovRad = (fovVertical / 2.0) * .pi / 180.0
-        let normalized = tan(diffRad) / tan(halfFovRad)
-        return (screenHeight / 2.0) - CGFloat(normalized) * (screenHeight / 2.0)
-    }
+private func projectY(altitude: Double, pitch: Double, fovVertical: Double, screenHeight: CGFloat) -> CGFloat {
+    let diff = altitude - pitch
+    guard abs(diff) < 85.0 else { return diff > 0 ? -500 : screenHeight + 500 }
 
-    private func isPointInScreen(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> Bool {
-        x >= -40 && x <= width + 40 && y >= -40 && y <= height + 40
-    }
+    let diffRad = diff * .pi / 180.0
+    let halfFovRad = (fovVertical / 2.0) * .pi / 180.0
+    let normalized = tan(diffRad) / tan(halfFovRad)
+    return (screenHeight / 2.0) - CGFloat(normalized) * (screenHeight / 2.0)
+}
 
-    private func cardinalLabel(for angle: Double) -> String {
-        let normalized = (angle.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
-        switch Int(normalized.rounded()) {
-        case 0, 360: return "N"
-        case 45: return "NE"
-        case 90: return "E"
-        case 135: return "SE"
-        case 180: return "S"
-        case 225: return "SO"
-        case 270: return "O"
-        case 315: return "NO"
-        default: return ""
-        }
+private func isPointInScreen(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> Bool {
+    x >= -40 && x <= width + 40 && y >= -40 && y <= height + 40
+}
+
+private func cardinalLabel(for angle: Double) -> String {
+    let normalized = (angle.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
+    switch Int(normalized.rounded()) {
+    case 0, 360: return "N"
+    case 45: return "NE"
+    case 90: return "E"
+    case 135: return "SE"
+    case 180: return "S"
+    case 225: return "SO"
+    case 270: return "O"
+    case 315: return "NO"
+    default: return ""
     }
 }
