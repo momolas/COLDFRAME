@@ -77,7 +77,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         self.startPeriodicUpdates()
     }
 
-    deinit {
+    isolated deinit {
         periodicTask?.cancel()
     }
 
@@ -89,7 +89,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         self.checkAlignment()
     }
 
-    nonisolated(unsafe) private var periodicTask: Task<Void, Never>?
+    private var periodicTask: Task<Void, Never>?
 
     private func startPeriodicUpdates() {
         periodicTask?.cancel()
