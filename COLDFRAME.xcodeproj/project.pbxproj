@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CDFBCAAB2EF352DD006CCBB8 /* SwiftAA in Frameworks */ = {isa = PBXBuildFile; productRef = CDFBCAAA2EF352DD006CCBB8 /* SwiftAA */; };
+		CD7F24B53040484800BCDCAC /* AAplus in Frameworks */ = {isa = PBXBuildFile; productRef = CD7F24B43040484800BCDCAC /* AAplus */; };
+		CD7F24B73040484800BCDCAC /* SwiftAA in Frameworks */ = {isa = PBXBuildFile; productRef = CD7F24B63040484800BCDCAC /* SwiftAA */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,7 +41,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CDFBCAAB2EF352DD006CCBB8 /* SwiftAA in Frameworks */,
+				CD7F24B73040484800BCDCAC /* SwiftAA in Frameworks */,
+				CD7F24B53040484800BCDCAC /* AAplus in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,7 +85,8 @@
 			);
 			name = COLDFRAME;
 			packageProductDependencies = (
-				CDFBCAAA2EF352DD006CCBB8 /* SwiftAA */,
+				CD7F24B43040484800BCDCAC /* AAplus */,
+				CD7F24B63040484800BCDCAC /* SwiftAA */,
 			);
 			productName = COLDFRAME;
 			productReference = CDFBCA802EF32E1D006CCBB8 /* COLDFRAME.app */;
@@ -114,7 +117,7 @@
 			mainGroup = CDFBCA772EF32E1D006CCBB8;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				CDFBCAA52EF352DD006CCBB8 /* XCRemoteSwiftPackageReference "SwiftAA" */,
+				CD7F24B33040484800BCDCAC /* XCRemoteSwiftPackageReference "SwiftAA" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CDFBCA812EF32E1D006CCBB8 /* Products */;
@@ -304,7 +307,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_INTEROP_MODE = "objcxx";
+				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -345,7 +348,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_INTEROP_MODE = "objcxx";
+				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -376,25 +379,25 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		CDFBCAA52EF352DD006CCBB8 /* XCRemoteSwiftPackageReference "SwiftAA" */ = {
+		CD7F24B33040484800BCDCAC /* XCRemoteSwiftPackageReference "SwiftAA" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/momolas/SwiftAA.git";
 			requirement = {
-				branch = master;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CDFBCAA82EF352DD006CCBB8 /* AAplus */ = {
+		CD7F24B43040484800BCDCAC /* AAplus */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CDFBCAA52EF352DD006CCBB8 /* XCRemoteSwiftPackageReference "SwiftAA" */;
+			package = CD7F24B33040484800BCDCAC /* XCRemoteSwiftPackageReference "SwiftAA" */;
 			productName = AAplus;
 		};
-		CDFBCAAA2EF352DD006CCBB8 /* SwiftAA */ = {
+		CD7F24B63040484800BCDCAC /* SwiftAA */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CDFBCAA52EF352DD006CCBB8 /* XCRemoteSwiftPackageReference "SwiftAA" */;
+			package = CD7F24B33040484800BCDCAC /* XCRemoteSwiftPackageReference "SwiftAA" */;
 			productName = SwiftAA;
 		};
 /* End XCSwiftPackageProductDependency section */

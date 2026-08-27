@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/momolas/SwiftAA.git",
       "state" : {
-        "branch" : "master",
-        "revision" : "ecd18761d74e2f9f3dbeb6b97af5543659ce39cd"
+        "revision" : "a8fde163ff245308f1e8dff54eed351d7c36f5a2",
+        "version" : "1.0.0"
       }
     }
   ],
