@@ -11,14 +11,21 @@ import SwiftUI
 /// - Panorama 3D vectoriel complet multi-strates (ciel crépusculaire / nuit avec crêtes étagées ombrées)
 /// - Réalité Augmentée avec superposition caméra en direct
 enum PeakFinderDisplayMode: String, CaseIterable, Identifiable {
-    case panorama = "Panorama 3D"
-    case cameraAR = "Caméra RA"
+    case panorama = "panorama"
+    case cameraAR = "cameraAR"
 
     var id: String { rawValue }
     var icon: String {
         switch self {
         case .panorama: return "mountain.2.fill"
         case .cameraAR: return "camera.viewfinder"
+        }
+    }
+
+    var localizedTitle: LocalizedStringKey {
+        switch self {
+        case .panorama: return "mode_panorama_3d"
+        case .cameraAR: return "mode_camera_ar"
         }
     }
 }
@@ -536,7 +543,7 @@ private struct ARCelestialLabelsOverlay: View {
                     .foregroundStyle(primaryColor)
                     .shadow(color: primaryColor, radius: 8)
 
-                Text("Lune (\(liveMoonPosition.formattedAltitude))")
+                Text("hud_moon_label \(liveMoonPosition.formattedAltitude)")
                     .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(secondaryColor)
                     .padding(.horizontal, 6)
@@ -545,7 +552,7 @@ private struct ARCelestialLabelsOverlay: View {
                     .clipShape(.capsule)
 
                 if showOpticalReticle {
-                    Text("FOV Jumelles 7x50 (7°)")
+                    Text("binocular_fov_7x50")
                         .font(.system(size: 8, weight: .medium))
                         .foregroundStyle(primaryColor)
                 }
@@ -563,7 +570,7 @@ private struct ARCelestialLabelsOverlay: View {
                     .foregroundStyle(accentSunColor)
                     .shadow(color: accentSunColor, radius: 10)
 
-                Text("Soleil")
+                Text("hud_sun_label")
                     .font(.system(size: 9, weight: .bold))
                     .foregroundStyle(accentSunColor)
             }
@@ -582,7 +589,8 @@ private struct ARCelestialLabelsOverlay: View {
                         .foregroundStyle(.green)
                         .shadow(color: .green, radius: 8)
 
-                    Text("QIBLA (\(Int(qiblaAngle.rounded()))°)")
+                    let qiblaAngleInt = Int64(qiblaAngle.rounded())
+                    Text("hud_qibla_label \(qiblaAngleInt)")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(.green)
                         .padding(.horizontal, 6)
@@ -687,7 +695,7 @@ private struct ARTopControlBar: View {
             // Sélecteur de Mode (Panorama 3D / Caméra RA)
             Picker("Mode", selection: $displayMode) {
                 ForEach(PeakFinderDisplayMode.allCases) { mode in
-                    Label(mode.rawValue, systemImage: mode.icon).tag(mode)
+                    Label(mode.localizedTitle, systemImage: mode.icon).tag(mode)
                 }
             }
             .pickerStyle(.segmented)
@@ -702,7 +710,7 @@ private struct ARTopControlBar: View {
                 HStack(spacing: 4) {
                     Image(systemName: qiblaManager.isNightVisionMode ? "moon.stars.fill" : "moon.fill")
                         .foregroundStyle(qiblaManager.isNightVisionMode ? .red : .secondary)
-                    Text(qiblaManager.isNightVisionMode ? "Filtre Rouge" : "Vision Nuit")
+                    Text(qiblaManager.isNightVisionMode ? "filter_red" : "filter_night_vision")
                         .font(.caption2)
                         .bold()
                         .foregroundStyle(qiblaManager.isNightVisionMode ? .red : .secondary)
@@ -723,7 +731,7 @@ private struct ARTopControlBar: View {
                 HStack(spacing: 4) {
                     Image(systemName: "circle.circle")
                         .foregroundStyle(qiblaManager.showOpticalReticle ? primaryColor : .secondary)
-                    Text("Jumelles 7°")
+                    Text("binocular_reticle_button")
                         .font(.caption2)
                         .bold()
                         .foregroundStyle(qiblaManager.showOpticalReticle ? primaryColor : .secondary)
@@ -743,7 +751,7 @@ private struct ARTopControlBar: View {
                         manualPitchOffset = 0.0
                     }
                 }) {
-                    Text("Recalibrer (0°)")
+                    Text("recalibrate_button")
                         .font(.caption2)
                         .bold()
                         .foregroundStyle(.orange)
@@ -759,16 +767,18 @@ private struct ARTopControlBar: View {
 
             // Indicateur de Cap & Altitude
             HStack(spacing: DesignSystem.Spacing.small) {
+                let bearingVal = ((baseCompassYaw + manualAzimuthOffset + 360).truncatingRemainder(dividingBy: 360)).formatted(.number.precision(.fractionLength(0)))
                 Label(
-                    "Cap: \(((baseCompassYaw + manualAzimuthOffset + 360).truncatingRemainder(dividingBy: 360)).formatted(.number.precision(.fractionLength(0))))°",
+                    "hud_bearing \(bearingVal)",
                     systemImage: "safari.fill"
                 )
                 .font(.caption)
                 .bold()
                 .foregroundStyle(secondaryColor)
 
+                let pitchVal = (motionManager.pitchDegrees + manualPitchOffset).formatted(.number.precision(.fractionLength(0)))
                 Label(
-                    "Inclinaison: \((motionManager.pitchDegrees + manualPitchOffset).formatted(.number.precision(.fractionLength(0))))°",
+                    "hud_pitch \(pitchVal)",
                     systemImage: "gyroscope"
                 )
                 .font(.caption)
@@ -791,13 +801,15 @@ private struct ARBottomHUDView: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Lune : \(qiblaManager.liveMoonPosition.formattedAzimuth) • Élévation \(qiblaManager.liveMoonPosition.formattedAltitude)")
+                Text("hud_bottom_moon_info \(qiblaManager.liveMoonPosition.formattedAzimuth) \(qiblaManager.liveMoonPosition.formattedAltitude)")
                     .font(.caption)
                     .bold()
                     .foregroundStyle(primaryColor)
 
                 if let weather = qiblaManager.hilalObservation.weatherConditions {
-                    Text("Clarté ciel : \(weather.seeingScore)% (\(weather.seeingDescription)) • Nuages \(weather.cloudCoverTotalPercent)%")
+                    let seeingScoreInt = Int64(weather.seeingScore)
+                    let cloudsInt = Int64(weather.cloudCoverTotalPercent)
+                    Text("weather_sky_clarity \(seeingScoreInt) \(weather.seeingDescription) \(cloudsInt)")
                         .font(.caption2)
                         .foregroundStyle(secondaryColor.opacity(0.85))
                 } else {
@@ -809,7 +821,7 @@ private struct ARBottomHUDView: View {
 
             Spacer()
 
-            Text("Faites glisser l'écran pour affiner l'alignement sur les crêtes")
+            Text("hud_drag_tip")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
@@ -827,7 +839,7 @@ private struct ARBottomHUDView: View {
 private func projectX(azimuth: Double, yaw: Double, fovHorizontal: Double, screenWidth: CGFloat) -> CGFloat {
     var diff = azimuth - yaw
     while diff > 180.0 { diff -= 360.0 }
-    while diff < -180.0 { diff += 360.0 }
+    while diff < -180.0 { diff -= 360.0 }
     guard abs(diff) < 85.0 else { return diff > 0 ? screenWidth + 500 : -500 }
 
     let diffRad = diff * .pi / 180.0
@@ -853,14 +865,14 @@ private func isPointInScreen(x: CGFloat, y: CGFloat, width: CGFloat, height: CGF
 private func cardinalLabel(for angle: Double) -> String {
     let normalized = (angle.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
     switch Int(normalized.rounded()) {
-    case 0, 360: return "N"
-    case 45: return "NE"
-    case 90: return "E"
-    case 135: return "SE"
-    case 180: return "S"
-    case 225: return "SO"
-    case 270: return "O"
-    case 315: return "NO"
+    case 0, 360: return String(localized: "cardinal_n")
+    case 45: return String(localized: "cardinal_ne")
+    case 90: return String(localized: "cardinal_e")
+    case 135: return String(localized: "cardinal_se")
+    case 180: return String(localized: "cardinal_s")
+    case 225: return String(localized: "cardinal_sw")
+    case 270: return String(localized: "cardinal_w")
+    case 315: return String(localized: "cardinal_nw")
     default: return ""
     }
 }

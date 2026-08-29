@@ -75,7 +75,7 @@ private struct LabelView: View {
         Group {
             if degree == 0 {
                 VStack(spacing: 1) {
-                    Text("N")
+                    Text("cardinal_n")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundStyle(.white)
                     Image(systemName: "triangle.fill")
@@ -83,15 +83,15 @@ private struct LabelView: View {
                         .foregroundStyle(.red)
                 }
             } else if degree == 90 {
-                Text("E")
+                Text("cardinal_e")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(.white)
             } else if degree == 180 {
-                Text("S")
+                Text("cardinal_s")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(.white)
             } else if degree == 270 {
-                Text("O")
+                Text("cardinal_w")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(.white)
             } else {

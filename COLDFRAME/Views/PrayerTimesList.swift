@@ -9,24 +9,25 @@ struct PrayerTimesList: View {
     let prayers: [PrayerTime]
     var nextPrayer: PrayerTime? = nil
 
-    private let defaultPrayerNames = [
-        ("Fajr", "sun.haze.fill"),
-        ("Dhuhr", "sun.max.fill"),
-        ("Asr", "sun.min.fill"),
-        ("Maghrib", "sunset.fill"),
-        ("Isha", "moon.stars.fill")
+    private let defaultPrayerKeys: [(LocalizedStringKey, String)] = [
+        ("prayer_fajr", "sun.haze.fill"),
+        ("prayer_dhuhr", "sun.max.fill"),
+        ("prayer_asr", "sun.min.fill"),
+        ("prayer_maghrib", "sunset.fill"),
+        ("prayer_isha", "moon.stars.fill")
     ]
 
     var body: some View {
         ScrollView(.horizontal) {
             LazyHStack(spacing: DesignSystem.Spacing.medium) {
                 if prayers.isEmpty {
-                    ForEach(defaultPrayerNames, id: \.0) { name, icon in
+                    ForEach(defaultPrayerKeys.indices, id: \.self) { idx in
+                        let (key, icon) = defaultPrayerKeys[idx]
                         VStack(spacing: DesignSystem.Spacing.small) {
                             Image(systemName: icon)
                                 .font(.title2)
                                 .foregroundStyle(.blue.opacity(0.5))
-                            Text(name)
+                            Text(key)
                                 .font(.caption).bold()
                                 .foregroundStyle(.secondary)
                             Text("--:--")

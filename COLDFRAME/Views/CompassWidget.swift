@@ -18,9 +18,14 @@ struct CompassWidget: View {
     
     private var cardinalDirection: String {
         let normalized = (safeHeading.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
-        let directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"]
+        let keys = [
+            "cardinal_n", "cardinal_nne", "cardinal_ne", "cardinal_ene",
+            "cardinal_e", "cardinal_ese", "cardinal_se", "cardinal_sse",
+            "cardinal_s", "cardinal_ssw", "cardinal_sw", "cardinal_wsw",
+            "cardinal_w", "cardinal_wnw", "cardinal_nw", "cardinal_nnw"
+        ]
         let index = Int((normalized + 11.25) / 22.5) % 16
-        return directions[index]
+        return String(localized: String.LocalizationValue(keys[index]))
     }
     
     var body: some View {
@@ -76,7 +81,7 @@ struct CompassWidget: View {
                     HStack(spacing: 3) {
                         Image(systemName: qiblaManager.isTrueNorth ? "location.fill" : "safari.fill")
                             .font(.system(size: 8))
-                        Text(qiblaManager.isTrueNorth ? "VRAI NORD" : "MAGNÉTIQUE")
+                        Text(qiblaManager.isTrueNorth ? "compass_true_north" : "compass_magnetic")
                             .font(.system(size: 8, weight: .bold))
                     }
                     .padding(.horizontal, 6)
@@ -91,7 +96,7 @@ struct CompassWidget: View {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.seal.fill")
                             .font(.system(size: 9))
-                        Text("ALIGNÉ AVEC LA MECQUE")
+                        Text("aligned_with_mecca")
                             .font(.system(size: 8, weight: .bold))
                     }
                     .padding(.horizontal, 7)
@@ -100,7 +105,8 @@ struct CompassWidget: View {
                     .foregroundStyle(.green)
                     .clipShape(.capsule)
                 } else if qiblaManager.qiblaAngle > 0 {
-                    Text("🕋 Qibla: \(Int(qiblaManager.qiblaAngle.rounded()))°")
+                    let angleInt = Int64(qiblaManager.qiblaAngle.rounded())
+                    Text("compass_qibla_bearing \(angleInt)")
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(.secondary)
                 }

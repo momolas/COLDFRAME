@@ -39,8 +39,8 @@ class NotificationManager {
 			}
 
 			let content = UNMutableNotificationContent()
-			content.title = "Heure de la prière"
-			content.body = "C'est l'heure de \(prayer.name)."
+			content.title = String(localized: "notif_prayer_title")
+			content.body = String(localized: "notif_prayer_body", defaultValue: "C'est l'heure de \(prayer.name).")
 			content.sound = .default
 			
 			let dateComponents = Calendar.current.dateComponents([.hour, .minute], from: prayer.date)

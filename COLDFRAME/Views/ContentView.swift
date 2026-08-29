@@ -42,16 +42,16 @@ private struct PortraitContentView: View {
                     Image(systemName: "location.slash.circle")
                         .font(.system(size: 60))
                         .foregroundStyle(.blue)
-                    Text("Localisation requise")
+                    Text("location_required_title")
                         .font(.title2).bold()
                         .foregroundStyle(.white)
-                    Text("Veuillez autoriser l'accès à la localisation dans les paramètres pour utiliser la boussole Qibla.")
+                    Text("location_required_desc")
                         .font(.body)
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal)
 
-                    Button("Ouvrir les Réglages", action: openSettings)
+                    Button("open_settings_button", action: openSettings)
                         .bold()
                         .buttonStyle(.borderedProminent)
                 }
@@ -86,7 +86,7 @@ private struct PortraitContentView: View {
 
                         // Horaires de Prière
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
-                            Text("Horaires de Prière")
+                            Text("prayer_times_section_title")
                                 .font(.title3.weight(.medium))
                                 .foregroundStyle(.secondary)
                                 .padding(.leading)
@@ -96,7 +96,7 @@ private struct PortraitContentView: View {
 
                         // Guide de repérage diurne de la Lune
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
-                            Text("Repérage en Plein Jour")
+                            Text("daytime_moon_section_title")
                                 .font(.title3.weight(.medium))
                                 .foregroundStyle(.secondary)
                                 .padding(.leading)
@@ -107,7 +107,7 @@ private struct PortraitContentView: View {
 
                         // Tracker d'observation du Hilal / Coucher du Soleil
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
-                            Text("Observation du Hilal (Maghrib)")
+                            Text("hilal_observation_section_title")
                                 .font(.title3.weight(.medium))
                                 .foregroundStyle(.secondary)
                                 .padding(.leading)

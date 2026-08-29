@@ -12,7 +12,7 @@ struct ElevationProfileView: View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
             HStack {
                 HStack(spacing: 4) {
-                    Label("Profil Topographique 3D", systemImage: "mountain.2")
+                    Label("terrain_3d_profile_title", systemImage: "mountain.2")
                         .font(.caption)
                         .bold()
                         .foregroundStyle(.secondary)
@@ -126,19 +126,20 @@ struct ElevationProfileView: View {
 
             // Légende des distances
             HStack {
-                Text("Observateur (0 km)")
+                Text("terrain_legend_observer")
                     .font(.system(size: 9))
                     .foregroundStyle(.secondary)
 
                 Spacer()
 
-                Text("Ligne de visée Lune (\(profile.moonAltitudeDegrees >= 0 ? "+" : "")\(profile.moonAltitudeDegrees.formatted(.number.precision(.fractionLength(1))))°)")
+                let moonAltStr = "\(profile.moonAltitudeDegrees >= 0 ? "+" : "")\(profile.moonAltitudeDegrees.formatted(.number.precision(.fractionLength(1))))"
+                Text("terrain_legend_moon_sight \(moonAltStr)")
                     .font(.system(size: 9))
                     .foregroundStyle(.yellow.opacity(0.8))
 
                 Spacer()
 
-                Text("Horizon (30 km)")
+                Text("terrain_legend_horizon")
                     .font(.system(size: 9))
                     .foregroundStyle(.secondary)
             }

@@ -109,7 +109,7 @@ nonisolated struct LiveMoonPosition: Sendable, Equatable {
     /// Guide de position par rapport au Soleil (pour repérer la Lune en plein jour sans regarder directement le Soleil)
     var relativeSunPositionText: String {
         guard sunAltitudeDegrees > -6.0 else {
-            return "Visible de nuit dans le ciel"
+            return String(localized: "sun_rel_night")
         }
 
         let diffAz = (azimuthDegrees - sunAzimuthDegrees).truncatingRemainder(dividingBy: 360)
@@ -117,35 +117,40 @@ nonisolated struct LiveMoonPosition: Sendable, Equatable {
         let angleAbs = abs(normalizedDiff).formatted(.number.precision(.fractionLength(0)))
 
         if abs(normalizedDiff) < 15 {
-            return "Très proche du Soleil (Prudence, ne pas fixer le Soleil !)"
+            return String(localized: "sun_rel_close")
         } else if normalizedDiff > 0 {
-            return "À ~\(angleAbs)° à gauche (Est) du Soleil"
+            return String(localized: "sun_rel_left", defaultValue: "À ~\(angleAbs)° à gauche (Est) du Soleil")
         } else {
-            return "À ~\(angleAbs)° à droite (Ouest) du Soleil"
+            return String(localized: "sun_rel_right", defaultValue: "À ~\(angleAbs)° à droite (Ouest) du Soleil")
         }
     }
 
     /// Guide d'élévation pratique (en doigts / mains tendues au-dessus de l'horizon)
     var elevationHandGuideText: String {
         if altitudeDegrees <= 0 {
-            return "Actuellement sous l'horizon"
+            return String(localized: "hand_guide_below")
         } else if altitudeDegrees < 10 {
-            return "Au ras de l'horizon (~1 poing)"
+            return String(localized: "hand_guide_ground")
         } else if altitudeDegrees < 25 {
             let hands = Int(round(altitudeDegrees / 10.0))
-            return "À mi-hauteur (~\(hands) poings au-dessus de l'horizon)"
+            return String(localized: "hand_guide_mid", defaultValue: "À mi-hauteur (~\(hands) poings au-dessus de l'horizon)")
         } else if altitudeDegrees < 60 {
             let hands = Int(round(altitudeDegrees / 10.0))
-            return "Haut dans le ciel (~\(hands) poings fermés)"
+            return String(localized: "hand_guide_high", defaultValue: "Haut dans le ciel (~\(hands) poings fermés)")
         } else {
-            return "Proche du Zénith (Regardez au-dessus de vous)"
+            return String(localized: "hand_guide_zenith")
         }
     }
 
     private func cardinalDirection(from degrees: Double) -> String {
         let normalized = (degrees.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360)
-        let directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"]
+        let keys = [
+            "cardinal_n", "cardinal_nne", "cardinal_ne", "cardinal_ene",
+            "cardinal_e", "cardinal_ese", "cardinal_se", "cardinal_sse",
+            "cardinal_s", "cardinal_ssw", "cardinal_sw", "cardinal_wsw",
+            "cardinal_w", "cardinal_wnw", "cardinal_nw", "cardinal_nnw"
+        ]
         let index = Int((normalized + 11.25) / 22.5) % 16
-        return directions[index]
+        return String(localized: String.LocalizationValue(keys[index]))
     }
 }

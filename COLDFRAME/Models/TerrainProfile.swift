@@ -67,12 +67,12 @@ nonisolated struct TerrainProfile: Sendable, Equatable {
         if isObstructed {
             let angleFormatted = maxObstructionAngle.formatted(.number.precision(.fractionLength(1)))
             let distFormatted = maxObstructionDistanceKm.formatted(.number.precision(.fractionLength(1)))
-            return "Relief obstruant (+\(angleFormatted)° à \(distFormatted) km)"
+            return String(localized: "terrain_obstructing_summary", defaultValue: "Relief obstruant (+\(angleFormatted)° à \(distFormatted) km)")
         } else if maxObstructionAngle > 0 {
             let margin = (moonAltitudeDegrees - maxObstructionAngle).formatted(.number.precision(.fractionLength(1)))
-            return "Horizon dégagé (marge de +\(margin)° au-dessus des crêtes)"
+            return String(localized: "terrain_clear_margin_summary", defaultValue: "Horizon dégagé (marge de +\(margin)° au-dessus des crêtes)")
         } else {
-            return "Horizon parfaitement dégagé"
+            return String(localized: "terrain_clear_summary")
         }
     }
 }

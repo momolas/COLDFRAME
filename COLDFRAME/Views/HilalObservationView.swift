@@ -29,14 +29,15 @@ struct HilalObservationView: View {
                     .foregroundStyle(data.visibility.color)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(data.visibility.rawValue)
+                    Text(data.visibility.localizedTitle)
                         .font(.footnote)
                         .bold()
                         .foregroundStyle(.white.opacity(0.95))
                         .fixedSize(horizontal: false, vertical: true)
 
                     if data.odehZone != "D" && data.visibility != .notObservationDay {
-                        Text("Critère Odeh (2004) : Zone \(data.odehZone) (V = \(data.odehVValue.formatted(.number.precision(.fractionLength(2)))))")
+                        let vStr = data.odehVValue.formatted(.number.precision(.fractionLength(2)))
+                        Text("odeh_criterion_format \(data.odehZone) \(vStr)")
                             .font(.caption2)
                             .foregroundStyle(.cyan.opacity(0.9))
                     }
@@ -54,19 +55,19 @@ struct HilalObservationView: View {
             if data.moonLagMinutes > 0 || data.bestObservationTime != nil {
                 HStack(spacing: DesignSystem.Spacing.small) {
                     HilalMetricBadge(
-                        title: "Heure Optimale",
+                        titleKey: "metric_best_time",
                         value: data.formattedBestObservationTime,
                         icon: "clock.badge.checkmark"
                     )
 
                     HilalMetricBadge(
-                        title: "Moon Lag (Retard)",
+                        titleKey: "metric_moon_lag",
                         value: "\(Int(data.moonLagMinutes.rounded())) min",
                         icon: "timer"
                     )
 
                     HilalMetricBadge(
-                        title: "Élongation",
+                        titleKey: "metric_elongation",
                         value: "\(data.elongationDegrees.formatted(.number.precision(.fractionLength(1))))°",
                         icon: "arrow.left.and.right"
                     )
@@ -77,19 +78,19 @@ struct HilalObservationView: View {
             if data.azimuthDegrees > 0 {
                 HStack(spacing: DesignSystem.Spacing.small) {
                     HilalMetricBadge(
-                        title: "Cap (Azimut)",
+                        titleKey: "metric_bearing",
                         value: data.formattedAzimuth,
                         icon: "safari.fill"
                     )
 
                     HilalMetricBadge(
-                        title: "Élévation Lune",
+                        titleKey: "metric_moon_altitude",
                         value: data.formattedMoonAltitude,
                         icon: "arrow.up.right"
                     )
 
                     HilalMetricBadge(
-                        title: "Altitude GPS",
+                        titleKey: "metric_gps_altitude",
                         value: "\(data.observerAltitudeMeters.formatted(.number.precision(.fractionLength(0)))) m",
                         icon: "mountain.2.fill"
                     )
@@ -103,7 +104,9 @@ struct HilalObservationView: View {
                         .font(.caption)
                         .foregroundStyle(weather.seeingScore >= 70 ? .green : (weather.seeingScore >= 40 ? .orange : .red))
 
-                    Text("Clarté ciel : \(weather.seeingScore)% (\(weather.seeingDescription)) • Nuages : \(weather.cloudCoverTotalPercent)%")
+                    let seeingScoreInt = Int64(weather.seeingScore)
+                    let cloudsInt = Int64(weather.cloudCoverTotalPercent)
+                    Text("weather_sky_clarity \(seeingScoreInt) \(weather.seeingDescription) \(cloudsInt)")
                         .font(.caption2)
                         .foregroundStyle(.white.opacity(0.85))
 
@@ -136,8 +139,8 @@ struct HilalObservationView: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Détails du profil altimétrique 3D")
-                    .accessibilityValue(isTerrainExpanded ? "Déplié" : "Replié")
+                    .accessibilityLabel("terrain_accessibility_label")
+                    .accessibilityValue(isTerrainExpanded ? String(localized: "state_expanded") : String(localized: "state_collapsed"))
 
                     if isTerrainExpanded {
                         ElevationProfileView(profile: profile)
@@ -157,7 +160,7 @@ struct HilalObservationView: View {
                         HStack {
                             Image(systemName: "function")
                                 .foregroundStyle(.cyan)
-                            Text("Détails scientifiques (Yallop / ARCV / W)")
+                            Text("scientific_details_button")
                                 .font(.caption2)
                                 .bold()
                                 .foregroundStyle(.cyan)
@@ -188,7 +191,7 @@ private struct ScientificDetailsGrid: View {
     var body: some View {
         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
             GridRow {
-                Text("Odeh V (2004):")
+                Text("scientific_odeh")
                     .font(.caption2)
                     .foregroundStyle(.cyan)
                 Text("\(data.odehVValue.formatted(.number.precision(.fractionLength(2)))) (Zone \(data.odehZone))")
@@ -196,7 +199,7 @@ private struct ScientificDetailsGrid: View {
                     .bold()
                     .foregroundStyle(.cyan)
 
-                Text("Yallop q (1997):")
+                Text("scientific_yallop")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Text("\(data.yallopQValue.formatted(.number.precision(.fractionLength(2)))) (Zone \(data.yallopZone))")
@@ -206,7 +209,7 @@ private struct ScientificDetailsGrid: View {
             }
 
             GridRow {
-                Text("Arc of Vision (ARCV):")
+                Text("scientific_arcv")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Text("\(data.arcOfVisionDegrees.formatted(.number.precision(.fractionLength(2))))°")
@@ -214,7 +217,7 @@ private struct ScientificDetailsGrid: View {
                     .bold()
                     .foregroundStyle(.white)
 
-                Text("Diff. Azimut (DAZ):")
+                Text("scientific_daz")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Text("\(data.azimuthDifferenceDegrees.formatted(.number.precision(.fractionLength(2))))°")
@@ -224,7 +227,7 @@ private struct ScientificDetailsGrid: View {
             }
 
             GridRow {
-                Text("Largeur croissant (W):")
+                Text("scientific_crescent_width")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Text("\(data.crescentWidthArcminutes.formatted(.number.precision(.fractionLength(2))))'")
@@ -232,7 +235,7 @@ private struct ScientificDetailsGrid: View {
                     .bold()
                     .foregroundStyle(.white)
 
-                Text("Âge de la Lune:")
+                Text("scientific_moon_age")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Text("\(data.moonAgeHours.formatted(.number.precision(.fractionLength(1)))) h")
@@ -248,7 +251,7 @@ private struct ScientificDetailsGrid: View {
 }
 
 private struct HilalMetricBadge: View {
-    let title: String
+    let titleKey: LocalizedStringKey
     let value: String
     let icon: String
 
@@ -258,7 +261,7 @@ private struct HilalMetricBadge: View {
                 Image(systemName: icon)
                     .font(.system(size: 8))
                     .foregroundStyle(.secondary)
-                Text(title)
+                Text(titleKey)
                     .font(.system(size: 8))
                     .foregroundStyle(.secondary)
             }

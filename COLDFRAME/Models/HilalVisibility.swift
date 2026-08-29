@@ -9,13 +9,13 @@ import SwiftUI
 import SwiftAA
 
 nonisolated enum HilalVisibility: String, Equatable, Sendable {
-    case notObservationDay = "Pas de recherche aujourd'hui"
-    case impossible = "Observation impossible (Lune trop jeune / Sous l'horizon)"
-    case obstructedByTerrain = "Observation masquée par le relief"
-    case opticalAidOnly = "Aide optique requise (Télescope / Jumelles)"
-    case opticalAidThenNakedEye = "Aide optique pour repérage puis œil nu"
-    case visibleNakedEyePerfectConditions = "Visible à l'œil nu (Ciel parfait)"
-    case easilyVisibleNakedEye = "Facilement visible à l'œil nu"
+    case notObservationDay = "not_observation_day"
+    case impossible = "impossible"
+    case obstructedByTerrain = "obstructed_by_terrain"
+    case opticalAidOnly = "optical_aid_only"
+    case opticalAidThenNakedEye = "optical_aid_then_naked_eye"
+    case visibleNakedEyePerfectConditions = "visible_naked_eye_perfect_conditions"
+    case easilyVisibleNakedEye = "easily_visible_naked_eye"
 
     init(zone: CrescentVisibilityZone) {
         switch zone {
@@ -54,15 +54,27 @@ nonisolated enum HilalVisibility: String, Equatable, Sendable {
         }
     }
 
-    var shortBadgeText: String {
+    var localizedTitle: LocalizedStringKey {
         switch self {
-        case .notObservationDay: return "Hors créneau"
-        case .impossible: return "Impossible"
-        case .obstructedByTerrain: return "Relief masqué"
-        case .opticalAidOnly: return "Optique seule"
-        case .opticalAidThenNakedEye: return "Jumelles d'abord"
-        case .visibleNakedEyePerfectConditions: return "Œil nu (Ciel pur)"
-        case .easilyVisibleNakedEye: return "Œil nu facile"
+        case .notObservationDay: return "hilal_not_observation_day"
+        case .impossible: return "hilal_impossible"
+        case .obstructedByTerrain: return "hilal_obstructed_terrain"
+        case .opticalAidOnly: return "hilal_optical_aid_only"
+        case .opticalAidThenNakedEye: return "hilal_optical_aid_then_naked"
+        case .visibleNakedEyePerfectConditions: return "hilal_visible_perfect_conditions"
+        case .easilyVisibleNakedEye: return "hilal_easily_visible_naked_eye"
+        }
+    }
+
+    var localizedShortBadge: LocalizedStringKey {
+        switch self {
+        case .notObservationDay: return "hilal_badge_not_observation_day"
+        case .impossible: return "hilal_badge_impossible"
+        case .obstructedByTerrain: return "hilal_badge_obstructed_terrain"
+        case .opticalAidOnly: return "hilal_badge_optical_aid_only"
+        case .opticalAidThenNakedEye: return "hilal_badge_optical_aid_then_naked"
+        case .visibleNakedEyePerfectConditions: return "hilal_badge_visible_perfect_conditions"
+        case .easilyVisibleNakedEye: return "hilal_badge_easily_visible"
         }
     }
 }
@@ -106,14 +118,6 @@ nonisolated struct HilalObservationData: Equatable, Sendable {
         return "\(moonAltitudeDegrees >= 0 ? "+" : "")\(altStr)°"
     }
 
-    var formattedMoonLag: String {
-        if moonLagMinutes <= 0 {
-            return "Lune couchée avant le Soleil"
-        }
-        let mins = Int(moonLagMinutes.rounded())
-        return "+\(mins) min après le coucher"
-    }
-
     var formattedBestObservationTime: String {
         guard let bestTime = bestObservationTime else { return "--:--" }
         return bestTime.formatted(date: .omitted, time: .shortened)
@@ -121,8 +125,13 @@ nonisolated struct HilalObservationData: Equatable, Sendable {
 
     private func cardinalDirection(from degrees: Double) -> String {
         let normalized = (degrees.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360)
-        let directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"]
+        let keys = [
+            "cardinal_n", "cardinal_nne", "cardinal_ne", "cardinal_ene",
+            "cardinal_e", "cardinal_ese", "cardinal_se", "cardinal_sse",
+            "cardinal_s", "cardinal_ssw", "cardinal_sw", "cardinal_wsw",
+            "cardinal_w", "cardinal_wnw", "cardinal_nw", "cardinal_nnw"
+        ]
         let index = Int((normalized + 11.25) / 22.5) % 16
-        return directions[index]
+        return String(localized: String.LocalizationValue(keys[index]))
     }
 }

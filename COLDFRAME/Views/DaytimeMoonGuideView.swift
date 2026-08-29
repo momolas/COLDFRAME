@@ -14,14 +14,14 @@ struct DaytimeMoonGuideView: View {
             HStack(spacing: DesignSystem.Spacing.small) {
                 Image(systemName: "sun.and.horizon.fill")
                     .foregroundStyle(.yellow)
-                Text("Repérer la Lune en plein jour")
+                Text("daytime_guide_header")
                     .font(.subheadline)
                     .bold()
                     .foregroundStyle(.yellow)
 
                 Spacer()
 
-                Text(position.isAboveHorizon ? "Dans le ciel" : "Sous l'horizon")
+                Text(position.isAboveHorizon ? "moon_status_in_sky" : "moon_status_below_horizon")
                     .font(.caption2)
                     .bold()
                     .foregroundStyle(position.isAboveHorizon ? .cyan : .secondary)
@@ -37,7 +37,7 @@ struct DaytimeMoonGuideView: View {
                     Image(systemName: "safari.fill")
                         .font(.caption)
                         .foregroundStyle(.cyan)
-                    Text("Direction : ")
+                    Text("label_direction")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     + Text(position.formattedAzimuth)
@@ -49,7 +49,7 @@ struct DaytimeMoonGuideView: View {
                     Image(systemName: "arrow.up.and.down.and.sparkles")
                         .font(.caption)
                         .foregroundStyle(.cyan)
-                    Text("Élévation : ")
+                    Text("label_elevation")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     + Text("\(position.formattedAltitude) • \(position.elevationHandGuideText)")
@@ -75,7 +75,7 @@ struct DaytimeMoonGuideView: View {
                 Image(systemName: "eye.fill")
                     .font(.system(size: 8))
                     .foregroundStyle(.secondary)
-                Text("Basculez le téléphone en mode paysage pour voir la Lune et sa trajectoire en réalité augmentée.")
+                Text("daytime_landscape_tip")
                     .font(.system(size: 9))
                     .foregroundStyle(.secondary)
             }

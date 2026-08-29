@@ -38,13 +38,13 @@ nonisolated struct WeatherConditions: Equatable, Sendable {
     var seeingDescription: String {
         switch seeingScore {
         case 85...100:
-            return "Ciel clair & limpide"
+            return String(localized: "weather_seeing_clear")
         case 65..<85:
-            return "Voiles légers à l'horizon"
+            return String(localized: "weather_seeing_hazy")
         case 40..<65:
-            return "Partiellement nuageux"
+            return String(localized: "weather_seeing_partly")
         default:
-            return "Ciel couvert / Bouché"
+            return String(localized: "weather_seeing_overcast")
         }
     }
 

@@ -127,7 +127,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
             .day()
             .month(.wide)
             .year()
-            .locale(Locale(identifier: "fr_FR"))
+            .locale(.autoupdatingCurrent)
         format.calendar = Calendar(identifier: .islamicUmmAlQura)
         self.islamicDate = Date().formatted(format)
 
@@ -137,7 +137,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         self.moonIllumination = moonData.illuminatedFraction
 
         let activeLocation = location ?? self.lastCalculationLocation
-        let maghrib = self.prayerTimes.first { $0.name == "Maghrib" }?.date
+        let maghrib = self.prayerTimes.first { $0.icon == "sunset.fill" }?.date ?? self.prayerTimes.first { $0.name == String(localized: "prayer_maghrib") }?.date
         var obsData = await AstronomicManager.getHilalObservation(for: Date(), maghribDate: maghrib, location: activeLocation)
 
         if let loc = activeLocation {
