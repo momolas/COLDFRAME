@@ -8,6 +8,8 @@ import SwiftUI
 struct CompassWidget: View {
     var qiblaManager: QiblaManager
     
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     private var safeHeading: Double {
         qiblaManager.heading.isFinite ? qiblaManager.heading : 0
     }
@@ -17,25 +19,17 @@ struct CompassWidget: View {
     }
     
     private var cardinalDirection: String {
-        let normalized = (safeHeading.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
-        let keys = [
-            "cardinal_n", "cardinal_nne", "cardinal_ne", "cardinal_ene",
-            "cardinal_e", "cardinal_ese", "cardinal_se", "cardinal_sse",
-            "cardinal_s", "cardinal_ssw", "cardinal_sw", "cardinal_wsw",
-            "cardinal_w", "cardinal_wnw", "cardinal_nw", "cardinal_nnw"
-        ]
-        let index = Int((normalized + 11.25) / 22.5) % 16
-        return String(localized: String.LocalizationValue(keys[index]))
+        CardinalDirection.from(degrees: safeHeading)
     }
     
     var body: some View {
         ZStack {
             // Halo de validation arrière-plan lors de l'alignement
             Circle()
-                .fill(qiblaManager.isAligned ? Color.green.opacity(0.2) : Color.clear)
+                .fill(qiblaManager.isAligned ? .green.opacity(0.2) : .clear)
                 .frame(width: DesignSystem.Layout.dialSize + 24, height: DesignSystem.Layout.dialSize + 24)
                 .blur(radius: 20)
-                .animation(.easeInOut(duration: 0.5), value: qiblaManager.isAligned)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.5), value: qiblaManager.isAligned)
             
             // 1. Cadran et pointeurs astronomiques (Tourne en temps réel avec le capteur)
             ZStack {

@@ -110,7 +110,7 @@ nonisolated struct HilalObservationData: Equatable, Sendable {
 
     var formattedAzimuth: String {
         let degreesStr = azimuthDegrees.formatted(.number.precision(.fractionLength(0)))
-        return "\(degreesStr)° \(cardinalDirection(from: azimuthDegrees))"
+        return "\(degreesStr)° \(CardinalDirection.from(degrees: azimuthDegrees))"
     }
 
     var formattedMoonAltitude: String {
@@ -121,17 +121,5 @@ nonisolated struct HilalObservationData: Equatable, Sendable {
     var formattedBestObservationTime: String {
         guard let bestTime = bestObservationTime else { return "--:--" }
         return bestTime.formatted(date: .omitted, time: .shortened)
-    }
-
-    private func cardinalDirection(from degrees: Double) -> String {
-        let normalized = (degrees.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360)
-        let keys = [
-            "cardinal_n", "cardinal_nne", "cardinal_ne", "cardinal_ene",
-            "cardinal_e", "cardinal_ese", "cardinal_se", "cardinal_sse",
-            "cardinal_s", "cardinal_ssw", "cardinal_sw", "cardinal_wsw",
-            "cardinal_w", "cardinal_wnw", "cardinal_nw", "cardinal_nnw"
-        ]
-        let index = Int((normalized + 11.25) / 22.5) % 16
-        return String(localized: String.LocalizationValue(keys[index]))
     }
 }

@@ -12,7 +12,7 @@ import SwiftAA
 
 @MainActor
 @Observable
-class QiblaManager: NSObject, CLLocationManagerDelegate {
+final class QiblaManager: NSObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
 
     var heading: Double = 0.0
@@ -45,11 +45,18 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
 
     @ObservationIgnored private var lastCalculationDate: Date?
     @ObservationIgnored private var lastCalculationLocation: CLLocation?
+    private let weatherService: any WeatherServiceProtocol
+    private let elevationService: any ElevationServiceProtocol
 
     // Coordonnées de la Kaaba (La Mecque)
     let meccaCoordinate = CLLocationCoordinate2D(latitude: 21.4225, longitude: 39.8262)
 
-    override init() {
+    init(
+        weatherService: any WeatherServiceProtocol = WeatherService.shared,
+        elevationService: any ElevationServiceProtocol = ElevationService.shared
+    ) {
+        self.weatherService = weatherService
+        self.elevationService = elevationService
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -151,16 +158,16 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
             let targetObsTime = obsData.bestObservationTime ?? maghrib ?? Date()
 
             // Fetch météo, profil d'obstruction et crêtes 360° en parallèle
-            async let terrainTask = ElevationService.shared.fetchTerrainProfile(
+            async let terrainTask = self.elevationService.fetchTerrainProfile(
                 from: loc,
                 azimuthDegrees: targetAz,
                 moonAltitudeDegrees: targetMoonAlt
             )
-            async let weatherTask = WeatherService.shared.fetchObservationWeather(
+            async let weatherTask = self.weatherService.fetchObservationWeather(
                 for: loc.coordinate,
                 targetTime: targetObsTime
             )
-            async let skylineTask = ElevationService.shared.fetchPanoramicSkyline(from: loc)
+            async let skylineTask = self.elevationService.fetchPanoramicSkyline(from: loc)
 
             let (terrain, weather, skylineResult) = await (terrainTask, weatherTask, skylineTask)
 
@@ -190,7 +197,7 @@ class QiblaManager: NSObject, CLLocationManagerDelegate {
         guard let loc = lastCalculationLocation ?? locationManager.location else { return }
         if self.liveMoonPosition.skyline.isEmpty {
             Task {
-                let skylineResult = await ElevationService.shared.fetchPanoramicSkyline(from: loc)
+                let skylineResult = await self.elevationService.fetchPanoramicSkyline(from: loc)
                 self.liveMoonPosition.skyline = skylineResult.skyline
                 self.liveMoonPosition.foregroundSkyline = skylineResult.foreground
                 self.liveMoonPosition.midgroundSkyline = skylineResult.midground

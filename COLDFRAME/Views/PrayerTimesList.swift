@@ -9,6 +9,8 @@ struct PrayerTimesList: View {
     let prayers: [PrayerTime]
     var nextPrayer: PrayerTime? = nil
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     private let defaultPrayerKeys: [(LocalizedStringKey, String)] = [
         ("prayer_fajr", "sun.haze.fill"),
         ("prayer_dhuhr", "sun.max.fill"),
@@ -63,7 +65,7 @@ struct PrayerTimesList: View {
                         }
                         .clipShape(.rect(cornerRadius: DesignSystem.Layout.cornerRadius))
                         .scaleEffect(isNext ? 1.05 : 1.0)
-                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isNext)
+                        .animation(reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.6), value: isNext)
                     }
                 }
             }

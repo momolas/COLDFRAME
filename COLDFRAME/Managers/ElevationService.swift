@@ -6,10 +6,27 @@
 import Foundation
 import CoreLocation
 
+/// Protocole décrivant le service altimétrique et de profil MNT
+protocol ElevationServiceProtocol: Sendable {
+    func fetchTerrainProfile(
+        from observerLocation: CLLocation,
+        azimuthDegrees: Double,
+        moonAltitudeDegrees: Double
+    ) async -> TerrainProfile?
+
+    func fetchPanoramicSkyline(from observerLocation: CLLocation) async -> (
+        skyline: [SkylinePoint],
+        foreground: [SkylinePoint],
+        midground: [SkylinePoint],
+        background: [SkylinePoint],
+        peaks: [MountainPeak]
+    )
+}
+
 /// Service hybride responsable de la récupération du modèle numérique de terrain (MNT) :
 /// - Utilise le LiDAR HD National IGN (résolution 1m) pour la France
 /// - Utilise le modèle mondial Copernicus DEM GLO-30 (résolution 30m) pour le reste du monde avec bascule automatique.
-actor ElevationService {
+actor ElevationService: ElevationServiceProtocol {
     static let shared = ElevationService()
 
     private let sampleDistancesKm: [Double] = [0.5, 1.0, 2.0, 3.5, 5.0, 7.5, 10.0, 15.0, 20.0, 25.0, 30.0]
@@ -370,7 +387,9 @@ actor ElevationService {
                 if curr.elevationAngleDegrees > prev.elevationAngleDegrees &&
                    curr.elevationAngleDegrees > next.elevationAngleDegrees &&
                    curr.elevationAngleDegrees > 0.3 {
-                    let name = "Crête \(Int(curr.azimuthDegrees))° • \(Int(curr.altitudeMeters))m"
+                    let azInt = Int64(curr.azimuthDegrees.rounded())
+                    let altInt = Int64(curr.altitudeMeters.rounded())
+                    let name = String(localized: "peak_ridge_format", defaultValue: "Crête \(azInt)° • \(altInt)m")
                     peaks.append(MountainPeak(
                         name: name,
                         azimuthDegrees: curr.azimuthDegrees,

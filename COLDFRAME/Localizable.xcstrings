@@ -2530,6 +2530,50 @@
           }
         }
       }
+    },
+    "peak_ridge_format" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "قمة %1$lld° • %2$lldم"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ridge %1$lld° • %2$lldm"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crête %1$lld° • %2$lldm"
+          }
+        }
+      }
+    },
+    "qibla_pointer_badge" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "القبلة"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QIBLA"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QIBLA"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

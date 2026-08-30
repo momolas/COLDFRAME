@@ -633,11 +633,11 @@ private struct ARCompassRibbonView: View {
                                 .frame(width: isCardinal ? 2 : 1, height: isCardinal ? 12 : (isMajor ? 8 : 5))
 
                             if isCardinal {
-                                Text(cardinalLabel(for: angle))
+                                Text(CardinalDirection.cardinalLetter(for: angle))
                                     .font(.system(size: 10, weight: .bold))
                                     .foregroundStyle(.white)
                             } else if isIntercardinal {
-                                Text(cardinalLabel(for: angle))
+                                Text(CardinalDirection.cardinalLetter(for: angle))
                                     .font(.system(size: 8, weight: .semibold))
                                     .foregroundStyle(.secondary)
                             } else if isMajor && (index % 6 == 0) {
@@ -689,6 +689,7 @@ private struct ARTopControlBar: View {
     let baseCompassYaw: Double
     let primaryColor: Color
     let secondaryColor: Color
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: DesignSystem.Spacing.small) {
@@ -703,7 +704,7 @@ private struct ARTopControlBar: View {
 
             // Bouton Bascule Vision Nocturne
             Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
                     qiblaManager.isNightVisionMode.toggle()
                 }
             }) {
@@ -724,7 +725,7 @@ private struct ARTopControlBar: View {
 
             // Bouton Réticule Jumelles FOV 7°
             Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
                     qiblaManager.showOpticalReticle.toggle()
                 }
             }) {
@@ -746,7 +747,7 @@ private struct ARTopControlBar: View {
             // Réinitialisation du calibrage si modifié
             if abs(manualAzimuthOffset) > 0.5 || abs(manualPitchOffset) > 0.5 {
                 Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
                         manualAzimuthOffset = 0.0
                         manualPitchOffset = 0.0
                     }
@@ -860,19 +861,4 @@ private func projectY(altitude: Double, pitch: Double, fovVertical: Double, scre
 
 private func isPointInScreen(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> Bool {
     x >= -40 && x <= width + 40 && y >= -40 && y <= height + 40
-}
-
-private func cardinalLabel(for angle: Double) -> String {
-    let normalized = (angle.truncatingRemainder(dividingBy: 360.0) + 360.0).truncatingRemainder(dividingBy: 360.0)
-    switch Int(normalized.rounded()) {
-    case 0, 360: return String(localized: "cardinal_n")
-    case 45: return String(localized: "cardinal_ne")
-    case 90: return String(localized: "cardinal_e")
-    case 135: return String(localized: "cardinal_se")
-    case 180: return String(localized: "cardinal_s")
-    case 225: return String(localized: "cardinal_sw")
-    case 270: return String(localized: "cardinal_w")
-    case 315: return String(localized: "cardinal_nw")
-    default: return ""
-    }
 }

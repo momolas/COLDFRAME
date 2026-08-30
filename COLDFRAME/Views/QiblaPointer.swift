@@ -12,7 +12,7 @@ struct QiblaPointer: View {
         ZStack {
             // Ligne fine du centre vers le bord
             Rectangle()
-                .fill(isAligned ? Color.green : Color.green.opacity(0.75))
+                .fill(isAligned ? .green : .green.opacity(0.75))
                 .frame(width: 2, height: 130)
                 .offset(y: -65)
                 
@@ -20,22 +20,22 @@ struct QiblaPointer: View {
             VStack(spacing: 1) {
                 Image(systemName: "location.north.fill")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(isAligned ? Color.white : Color.green)
-                    .shadow(color: isAligned ? Color.green : Color.clear, radius: 8)
+                    .foregroundStyle(isAligned ? .white : .green)
+                    .shadow(color: isAligned ? .green : .clear, radius: 8)
 
-                Text("QIBLA")
+                Text("qibla_pointer_badge")
                     .font(.system(size: 8, weight: .black))
-                    .foregroundStyle(isAligned ? Color.white : Color.green)
+                    .foregroundStyle(isAligned ? .white : .green)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 1)
-                    .background(Color.black.opacity(0.8))
+                    .background(.black.opacity(0.8))
                     .clipShape(.capsule)
             }
             .offset(y: -145)
             
             // Point central émeraude
             Circle()
-                .fill(isAligned ? Color.white : Color.green)
+                .fill(isAligned ? .white : .green)
                 .frame(width: 8, height: 8)
         }
     }

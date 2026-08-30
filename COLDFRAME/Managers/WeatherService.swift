@@ -8,7 +8,15 @@
 import Foundation
 import CoreLocation
 
-actor WeatherService {
+/// Protocole décrivant le service météo crépusculaire pour l'observation astronomique
+protocol WeatherServiceProtocol: Sendable {
+    func fetchObservationWeather(
+        for location: CLLocationCoordinate2D,
+        targetTime: Date
+    ) async -> WeatherConditions?
+}
+
+actor WeatherService: WeatherServiceProtocol {
     static let shared = WeatherService()
 
     private var cache: [String: (conditions: WeatherConditions, timestamp: Date)] = [:]

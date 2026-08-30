@@ -11,6 +11,7 @@ struct HilalObservationView: View {
     let data: HilalObservationData
     @State private var isTerrainExpanded: Bool = false
     @State private var isScientificExpanded: Bool = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(data: HilalObservationData) {
         self.data = data
@@ -121,7 +122,7 @@ struct HilalObservationView: View {
             if let profile = data.terrainProfile {
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
                     Button(action: {
-                        withAnimation(.easeInOut(duration: 0.25)) {
+                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.25)) {
                             isTerrainExpanded.toggle()
                         }
                     }) {
@@ -144,7 +145,7 @@ struct HilalObservationView: View {
 
                     if isTerrainExpanded {
                         ElevationProfileView(profile: profile)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
+                            .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
                     }
                 }
             }
@@ -153,7 +154,7 @@ struct HilalObservationView: View {
             if data.crescentWidthArcminutes > 0 {
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
                     Button(action: {
-                        withAnimation(.easeInOut(duration: 0.25)) {
+                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.25)) {
                             isScientificExpanded.toggle()
                         }
                     }) {
@@ -174,7 +175,7 @@ struct HilalObservationView: View {
 
                     if isScientificExpanded {
                         ScientificDetailsGrid(data: data)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
+                            .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
                     }
                 }
             }

@@ -11,10 +11,12 @@ import UserNotifications
 import os
 
 @MainActor
-class NotificationManager {
-	static let shared = NotificationManager()
+final class NotificationManager {
+    static let shared = NotificationManager()
 
     private let logger = Logger(subsystem: "com.coldframe.app", category: "NotificationManager")
+
+    private init() {}
 	
 	func requestAuthorization() {
 		Task {
